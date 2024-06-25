@@ -42,6 +42,24 @@ const updateUserInfor = async (email, username, id) => {
 }
 
 const getUserList = async () => {
+    // let newUser = await db.User.findOne({
+    //     where: { id: 1 },
+    //     attributes: ["id", "email", "username"],
+    //     include: { model: db.Group, attributes: ["id", "name", "description"] },
+    //     raw: true,
+    //     nest: true
+    // })
+
+    // let roles = await db.Role.findAll({
+    //     attributes: ["id", "url", "description"],
+    //     include: { model: db.Group, attributes: ["id", "name", "description"] },
+    //     raw: true,
+    //     nest: true
+    // })
+
+    // console.log(">>> check user: ", newUser)
+    // console.log(">>> check roles: ", roles)
+
     let users = []
     users = await db.User.findAll()
     return users
