@@ -36,7 +36,8 @@ const handleRegisterUser = async (user) => {
         if (isExistEmail === true) {
             return {
                 EM: "Email is exist!",
-                EC: "0"
+                EC: "0",
+                DT: "email"
             }
         }
 
@@ -44,7 +45,8 @@ const handleRegisterUser = async (user) => {
         if (isExistPhone === true) {
             return {
                 EM: "Phone is exist!",
-                EC: "0"
+                EC: "0",
+                DT: "phone"
             }
         }
 
@@ -52,7 +54,8 @@ const handleRegisterUser = async (user) => {
             email: user.email,
             phone: user.phone,
             username: user.username,
-            password: hashUserPassword(user.password)
+            password: hashUserPassword(user.password),
+            groupId: 4
         })
 
         return {
