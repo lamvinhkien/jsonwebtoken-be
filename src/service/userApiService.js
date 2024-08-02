@@ -41,7 +41,7 @@ const getUserWithPagination = async (page, limit) => {
             offset: offset,
             limit: limit
         })
-        let totalPage = Math.ceil(count / limit)
+        let totalPage = Math.ceil(count / limit) // lam tron len
 
         return {
             page: page,

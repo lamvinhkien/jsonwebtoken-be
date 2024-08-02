@@ -1,6 +1,8 @@
 import db from "../models/index";
 import bcrypt from 'bcryptjs';
 import Op from "sequelize/lib/operators";
+import { getGroupRoles } from "./JWTService";
+import { createToken } from "../middleware/JWTAction";
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -83,10 +85,25 @@ const handleLoginUser = async (valueLogin, password) => {
         if (userData) {
             let isCorrectPassword = await checkPassword(password, userData.password)
             if (isCorrectPassword) {
+                let scope = await getGroupRoles(userData)
+
+                let payload = {
+                    email: userData.email,
+                    username: userData.username,
+                    data: scope,
+                }
+
+                let token = await createToken(payload)
+
                 return {
                     EM: "Login successfully!",
                     EC: "1",
-                    DT: userData.email
+                    DT: {
+                        access_token: token,
+                        data: scope,
+                        email: userData.email,
+                        username: userData.username
+                    }
                 }
             }
         }
@@ -97,7 +114,7 @@ const handleLoginUser = async (valueLogin, password) => {
             DT: ""
         }
     } catch (error) {
-        console.log(">>> Check error Login ", error)
+        console.log(error)
         return {
             EM: "Error user login from server",
             EC: "0", 

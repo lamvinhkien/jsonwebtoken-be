@@ -150,6 +150,23 @@ const deleteFunc = async (req, res) => {
     }
 }
 
+const getUserAccount = async (req, res) => {
+    let token = req.token
+    if(token){
+        return res.json({
+            EC: "1",
+            EM: "Get User Account Successfully!",
+            DT: token
+        })
+    } else {
+        return res.json({
+            EC: "0",
+            EM: "User are not authenticated. Please login!",
+            DT: ""
+        })
+    }
+}
+
 module.exports = {
-    readFunc, createFunc, updateFunc, deleteFunc
+    readFunc, createFunc, updateFunc, deleteFunc, getUserAccount
 }
