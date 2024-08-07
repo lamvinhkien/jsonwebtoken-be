@@ -21,13 +21,16 @@ const initApiRoutes = (app) => {
     router.get("/user/get-account", checkUserLogin, userController.getUserAccount)
 
     // Role routes
+    router.get("/role/get-all", checkUserLogin, roleController.readFuncWithoutPage)
     router.get("/role/show-all", checkUserLogin, checkUserPermission, roleController.readFunc)
     router.post("/role/create", checkUserLogin, checkUserPermission, roleController.createFunc)
     router.put("/role/update", checkUserLogin, checkUserPermission, roleController.updateFunc)
     router.delete("/role/delete", checkUserLogin, checkUserPermission, roleController.deleteFunc)
 
     // Group routes
-    router.get("/group/show-all", groupController.readFunc)
+    router.get("/group/show-all", checkUserLogin, groupController.readFunc)
+    router.post("/group/get-group-with-roles", checkUserLogin, groupController.readFuncWithRoles)
+    router.post("/group/assign-role-for-group", checkUserLogin, checkUserPermission, groupController.assignRoleForGroup)
     
     return app.use("/api", router)
 }

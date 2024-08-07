@@ -34,13 +34,40 @@ const createRoles = async (roles) => {
     }
 }
 
+const getRole = async () => {
+    try {
+        let roles = await db.Role.findAll({
+            attributes: ['id', 'url', 'description']
+        })
+
+        if (roles) {
+            return roles
+        } else {
+            return {
+                EM: "Error from server",
+                EC: "0",
+                DT: []
+            }
+        }
+
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: []
+        }
+    }
+}
+
 const getRoleWithPagination = async (page, limit) => {
     try {
         let offset = (page - 1) * limit
         let { count, rows } = await db.Role.findAndCountAll({
             attributes: ["id", "url", "description"],
             offset: offset,
-            limit: limit
+            limit: limit,
+            order: [["id", "DESC"]],
         })
         let totalPage = Math.ceil(count / limit) // lam tron len
 
@@ -156,5 +183,5 @@ const updateRole = async (data) => {
 }
 
 module.exports = {
-    createRoles, getRoleWithPagination, deleteRole, updateRole
+    createRoles, getRoleWithPagination, deleteRole, updateRole, getRole
 }

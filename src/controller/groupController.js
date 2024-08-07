@@ -18,6 +18,44 @@ const readFunc = async (req, res) => {
     }
 }
 
+const readFuncWithRoles = async (req, res) => {
+    try {
+        let data = await groupApiService.getGroupWithRoles(req.body.id)
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
+const assignRoleForGroup = async (req, res) => {
+    try {
+        let data = await groupApiService.assignRoleForGroup(req.body)
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
 module.exports = {
-    readFunc
+    readFunc, readFuncWithRoles, assignRoleForGroup
 }

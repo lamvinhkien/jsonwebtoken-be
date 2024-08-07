@@ -29,6 +29,33 @@ const readFunc = async (req, res) => {
     }
 }
 
+const readFuncWithoutPage = async (req, res) => {
+    try {
+        let roles = await roleApiService.getRole()
+
+        if (roles) {
+            return res.json({
+                EM: "Get roles successfully!",
+                EC: "1",
+                DT: roles
+            })
+        } else {
+            return res.json({
+                EM: "Role not exist",
+                EC: "0",
+                DT: ""
+            })
+        }
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
 const createFunc = async (req, res) => {
     try {
         let data = await roleApiService.createRoles(req.body)
@@ -103,5 +130,5 @@ const deleteFunc = async (req, res) => {
 
 
 module.exports = {
-    readFunc, createFunc, updateFunc, deleteFunc
+    readFunc, createFunc, updateFunc, deleteFunc, readFuncWithoutPage
 }
