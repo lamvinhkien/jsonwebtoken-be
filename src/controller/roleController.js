@@ -56,34 +56,8 @@ const readFuncWithoutPage = async (req, res) => {
     }
 }
 
-const createFunc = async (req, res) => {
-    try {
-        let data = await roleApiService.createRoles(req.body)
-        return res.json({
-            EM: data.EM,
-            EC: data.EC,
-            DT: data.DT
-        })
-    } catch (error) {
-        console.log(error)
-        return res.json({
-            EM: "Error from server",
-            EC: "0",
-            DT: ""
-        })
-    }
-}
-
 const updateFunc = async (req, res) => {
     try {
-        if(!req.body.url){
-            return res.json({
-                EM: 'Please enter URL.',
-                EC: "0",
-                DT: {}
-            })
-        }
-
         if(!req.body.id){
             return res.json({
                 EM: 'This role not founded.',
@@ -110,25 +84,6 @@ const updateFunc = async (req, res) => {
     }
 }
 
-const deleteFunc = async (req, res) => {
-    try {
-        let data = await roleApiService.deleteRole(req.body.id)
-        return res.json({
-            EM: data.EM,
-            EC: data.EC,
-            DT: data.DT
-        })
-    } catch (error) {
-        console.log(error)
-        return res.json({
-            EM: "Error from server",
-            EC: "0",
-            DT: ""
-        })
-    }
-}
-
-
 module.exports = {
-    readFunc, createFunc, updateFunc, deleteFunc, readFuncWithoutPage
+    readFunc, updateFunc, readFuncWithoutPage
 }

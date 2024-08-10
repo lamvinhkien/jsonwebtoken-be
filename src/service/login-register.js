@@ -90,6 +90,7 @@ const handleLoginUser = async (valueLogin, password) => {
                 let payload = {
                     email: userData.email,
                     username: userData.username,
+                    phone: userData.phone,
                     data: scope,
                 }
 
@@ -102,6 +103,7 @@ const handleLoginUser = async (valueLogin, password) => {
                         access_token: token,
                         data: scope,
                         email: userData.email,
+                        phone: userData.phone,
                         username: userData.username
                     }
                 }
@@ -117,7 +119,7 @@ const handleLoginUser = async (valueLogin, password) => {
         console.log(error)
         return {
             EM: "Error user login from server",
-            EC: "0", 
+            EC: "0",
             DT: ""
         }
     }

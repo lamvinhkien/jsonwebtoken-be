@@ -1,6 +1,5 @@
 import express from "express";
 import configViewEngine from "./config/viewEngine";
-import initWebRoutes from "./routes/web";
 import initApiRoutes from "./routes/api";
 import bodyParser from "body-parser";
 import cookieParser from 'cookie-parser';
@@ -29,7 +28,6 @@ app.use(cookieParser())
 configCors(app);
 
 // init routes
-initWebRoutes(app);
 initApiRoutes(app);
 
 app.listen(PORT, () => {

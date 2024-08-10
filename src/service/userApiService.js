@@ -1,5 +1,7 @@
 import db from "../models/index";
 import bcrypt from 'bcryptjs';
+import { getGroupRoles } from "./JWTService";
+import { createToken } from "../middleware/JWTAction";
 
 // hash password
 const salt = bcrypt.genSaltSync(10);
@@ -81,7 +83,7 @@ const createNewUser = async (user) => {
 
         let password = hashUserPassword(user.password)
 
-        let data = await db.User.create({...user, password: password})
+        let data = await db.User.create({ ...user, password: password })
         return {
             EM: "Create new user successfully!",
             EC: "1",
@@ -103,7 +105,7 @@ const updateUser = async (user) => {
             where: { id: user.id }
         })
 
-        if(res){
+        if (res) {
             let updateUser = await res.update({
                 username: user.username,
                 address: user.address,
@@ -139,11 +141,11 @@ const deleteUser = async (id) => {
             where: { id: id }
         })
 
-        if(user){
+        if (user) {
             await db.User.destroy({
                 where: { id: user.id }
             })
-            
+
             return {
                 EM: "Delete user successfully!",
                 EC: "1",
@@ -166,6 +168,166 @@ const deleteUser = async (id) => {
     }
 }
 
+const changeInfor = async (userData) => {
+    try {
+        let user = await db.User.findOne({
+            where: { email: userData.email }
+        })
+
+        if (user) {
+            let userEmail = user.email
+            let userPhone = user.phone
+
+            let dataEmail = userData.changeData.email
+            let dataPhone = userData.changeData.phone
+            let dataUsername = userData.changeData.username
+
+            let checkEmailExist = await checkEmail(dataEmail)
+            let checkPhoneExist = await checkPhone(dataPhone)
+
+            if (!(dataEmail === userEmail || checkEmailExist === false)) {
+                return {
+                    EM: "Email exist!",
+                    EC: "0",
+                    DT: 'email'
+                }
+            }
+
+            if (!(dataPhone === userPhone || checkPhoneExist === false)) {
+                return {
+                    EM: "Phone exist!",
+                    EC: "0",
+                    DT: 'phone'
+                }
+            }
+
+            await user.update({
+                email: dataEmail,
+                phone: dataPhone,
+                username: dataUsername,
+            })
+
+            let scope = await getGroupRoles(userData)
+
+            let payload = {
+                email: dataEmail,
+                username: dataUsername,
+                phone: dataPhone,
+                data: scope,
+            }
+
+            let token = await createToken(payload)
+
+            return {
+                EM: "Save changes successfully!",
+                EC: "1",
+                DT: {
+                    access_token: token,
+                }
+            }
+        } else {
+            return {
+                EM: "User not exist!",
+                EC: "0",
+                DT: {}
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: {}
+        }
+    }
+}
+
+const checkPassword = async (inputPassword, hashPassword) => {
+    let res = await bcrypt.compare(inputPassword, hashPassword);
+    return res;
+}
+
+const changePassword = async (userData) => {
+    try {
+        let user = await db.User.findOne({
+            where: { email: userData.email }
+        })
+
+        if(user){
+            let currentPassword = userData.changeData.currentPassword
+            let newPassword = userData.changeData.newPassword
+            let confirmNewPassword = userData.changeData.confirmNewPassword
+            let isCorrectPassword = await checkPassword(currentPassword, user.password)
+
+            if(!currentPassword){
+                return {
+                    EM: "Please enter current password.",
+                    EC: "0",
+                    DT: 'current'
+                }
+            }
+            if(!newPassword){
+                return {
+                    EM: "Please enter new password.",
+                    EC: "0",
+                    DT: 'new'
+                }
+            }
+            if(!confirmNewPassword){
+                return {
+                    EM: "Please enter confirm new password.",
+                    EC: "0",
+                    DT: 'confirm'
+                }
+            }
+            if(confirmNewPassword !== newPassword){
+                return {
+                    EM: "New password & Confirm password isn't same",
+                    EC: "0",
+                    DT: 'isNotSame'
+                }
+            }
+            if(!isCorrectPassword){
+                return {
+                    EM: "Incorrect current password.",
+                    EC: "0",
+                    DT: 'incorrect'
+                }
+            }
+            if(newPassword === currentPassword){
+                return {
+                    EM: "New password same as current password",
+                    EC: "0",
+                    DT: 'sameCurrent'
+                }
+            }
+
+            await user.update({
+                password: hashUserPassword(newPassword)
+            })
+
+            return {
+                EM: "Save changes successfully!",
+                EC: "1",
+                DT: {}
+            }
+        } else {
+            return {
+                EM: "User not exist!",
+                EC: "0",
+                DT: {}
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: {}
+        }
+    }
+}
+
 module.exports = {
-    getAllUser, createNewUser, updateUser, deleteUser, getUserWithPagination
+    getAllUser, createNewUser, updateUser, deleteUser, getUserWithPagination, changeInfor, changePassword
 }

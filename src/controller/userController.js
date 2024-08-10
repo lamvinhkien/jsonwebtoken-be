@@ -1,4 +1,5 @@
 import userApiService from "../service/userApiService";
+require("dotenv").config(); // doc file .env
 
 const readFunc = async (req, res) => {
     try {
@@ -37,7 +38,7 @@ const createFunc = async (req, res) => {
                 EC: "0",
             })
         }
-    
+
         let regEmail = /\S+@\S+\.\S+/;
         let validateEmail = regEmail.test(req.body.email)
         if (!validateEmail) {
@@ -47,7 +48,7 @@ const createFunc = async (req, res) => {
                 DT: "email"
             })
         }
-    
+
         let regPhone = /(0[3|5|7|8|9])+([0-9]{8})\b/g;
         let validatePhone = regPhone.test(req.body.phone)
         if (!validatePhone) {
@@ -57,7 +58,7 @@ const createFunc = async (req, res) => {
                 DT: "phone"
             })
         }
-    
+
         let regName = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ'\s]*$/;
         let validateName = regName.test(req.body.username)
         if (!validateName) {
@@ -67,7 +68,7 @@ const createFunc = async (req, res) => {
                 DT: "username"
             })
         }
-    
+
         if (req.body.password && req.body.password.length < 6) {
             return res.json({
                 EM: "Password length must be at lastest 6 character!",
@@ -75,7 +76,7 @@ const createFunc = async (req, res) => {
                 DT: "password"
             })
         }
-        
+
         let data = await userApiService.createNewUser(req.body)
         if (data) {
             return res.json({
@@ -106,7 +107,7 @@ const updateFunc = async (req, res) => {
             })
         }
 
-        if(!req.body.groupId){
+        if (!req.body.groupId) {
             return res.json({
                 EM: "Please enter group.",
                 EC: "0",
@@ -115,7 +116,7 @@ const updateFunc = async (req, res) => {
         }
 
         let data = await userApiService.updateUser(req.body)
-        if(data){
+        if (data) {
             return res.json({
                 EM: data.EM,
                 EC: data.EC,
@@ -152,7 +153,7 @@ const deleteFunc = async (req, res) => {
 
 const getUserAccount = async (req, res) => {
     let token = req.token
-    if(token){
+    if (token) {
         return res.json({
             EC: "1",
             EM: "Get User Account Successfully!",
@@ -167,6 +168,52 @@ const getUserAccount = async (req, res) => {
     }
 }
 
+const changeInfor = async (req, res) => {
+    try {
+        let data = await userApiService.changeInfor(req.body)
+
+        if(data.EC === '1'){
+            res.cookie("jwt", data.DT.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN })
+        }
+        
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EC: "0",
+            EM: "Error from server",
+            DT: ""
+        })
+    }
+}
+
+const changePassword = async (req, res) => {
+    try {
+        let data = await userApiService.changePassword(req.body)
+        
+        if(data.EC === '1'){
+            res.clearCookie("jwt");
+        }
+
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EC: "0",
+            EM: "Error from server",
+            DT: ""
+        })
+    }
+}
+
 module.exports = {
-    readFunc, createFunc, updateFunc, deleteFunc, getUserAccount
+    readFunc, createFunc, updateFunc, deleteFunc, getUserAccount, changeInfor, changePassword
 }

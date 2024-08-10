@@ -1,4 +1,6 @@
 import db from "../models/index";
+import { getGroupRoles } from "./JWTService";
+import { createToken } from "../middleware/JWTAction";
 
 const getAllGroup = async () => {
     try {
@@ -23,15 +25,42 @@ const getAllGroup = async () => {
     }
 }
 
+const getGroupWithPagination = async (page, limit) => {
+    try {
+        let offset = (page - 1) * limit
+        let { count, rows } = await db.Group.findAndCountAll({
+            attributes: ["id", "name", "description"],
+            offset: offset,
+            limit: limit,
+            order: [["name", "ASC"]],
+        })
+        let totalPage = Math.ceil(count / limit) // lam tron len
+
+        return {
+            page: page,
+            totalPage: totalPage,
+            offset: offset,
+            roles: rows
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: []
+        }
+    }
+}
+
 const getGroupWithRoles = async (id) => {
     try {
         let group = await db.Group.findOne({
             where: { id: id },
             attributes: ['id', 'name', 'description'],
-            include: { model: db.Role , attributes: ['id', 'url', 'description'], through: { attributes: [] }}
+            include: { model: db.Role, attributes: ['id', 'url', 'description'], through: { attributes: [] } }
         })
 
-        if(group){
+        if (group) {
             return {
                 EM: "Get group with roles successfully!",
                 EC: "1",
@@ -62,10 +91,23 @@ const assignRoleForGroup = async (data) => {
 
         await db.Group_Role.bulkCreate(data.roles)
 
+        let scope = await getGroupRoles(data.user)
+
+        let payload = {
+            email: data.user.email,
+            username: data.user.username,
+            phone: data.user.phone,
+            data: scope,
+        }
+
+        let token = await createToken(payload)
+
         return {
             EM: "Assign role for group successfully!",
             EC: "1",
-            DT: {}
+            DT: {
+                access_token: token,
+            }
         }
     } catch (error) {
         console.log(error)
@@ -77,6 +119,136 @@ const assignRoleForGroup = async (data) => {
     }
 }
 
+const createGroups = async (groups) => {
+    try {
+        let currentGroups = await db.Group.findAll({
+            attributes: ['name', 'description'],
+            raw: true
+        })
+
+        let compareGroups = groups.filter(({ name: name1 }) => !currentGroups.some(({ name: name2 }) => name2 === name1));
+
+        if (compareGroups.length === 0) {
+            return {
+                EM: "The group you created is already available.",
+                EC: "0",
+                DT: []
+            }
+        }
+
+        let result = await db.Group.bulkCreate(compareGroups)
+        let message = result.length > 1 ? `${result.length} groups` : `${result.length} group`
+        return {
+            EM: `Create ${message} successfully!`,
+            EC: "1",
+            DT: result
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: {}
+        }
+    }
+}
+
+const deleteGroup = async (id) => {
+    try {
+        let group = await db.Group.findOne({
+            where: { id: id }
+        })
+
+        if (group) {
+            await db.Group.destroy({
+                where: { id: group.id }
+            })
+
+            return {
+                EM: "Delete group successfully!",
+                EC: "1",
+                DT: []
+            }
+        } else {
+            return {
+                EM: "Role not exist",
+                EC: "0",
+                DT: []
+            }
+
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: []
+        }
+    }
+}
+
+const checkNameExist = async (name) => {
+    let check = true
+    let currentName = await db.Group.findAll({
+        attributes: ['name'],
+        raw: true
+    })
+
+    currentName.find((item) => {
+        if (item.name === name) {
+            check = false
+        }
+    })
+
+    return check
+}
+
+const updateGroup = async (data) => {
+    try {
+        let group = await db.Group.findOne({
+            where: { id: data.id }
+        })
+
+
+        if (group) {
+            let check = await checkNameExist(data.name)
+
+            if (check || data.name === group.name) {
+                await group.update({
+                    name: data.name,
+                    description: data.description
+                })
+
+                return {
+                    EM: "Update group successfully!",
+                    EC: "1",
+                    DT: group
+                }
+            } else {
+                return {
+                    EM: "Name exist.",
+                    EC: "0",
+                    DT: {}
+                }
+            }
+        } else {
+            return {
+                EM: "Group not exist.",
+                EC: "0",
+                DT: {}
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: []
+        }
+    }
+}
+
+
 module.exports = {
-    getAllGroup, getGroupWithRoles, assignRoleForGroup
+    getAllGroup, getGroupWithRoles, assignRoleForGroup, createGroups, deleteGroup, updateGroup, getGroupWithPagination
 }
