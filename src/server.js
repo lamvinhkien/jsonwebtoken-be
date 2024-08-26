@@ -3,16 +3,11 @@ import configViewEngine from "./config/viewEngine";
 import initApiRoutes from "./routes/api";
 import bodyParser from "body-parser";
 import cookieParser from 'cookie-parser';
-import connection from "./config/connectDB";
 import configCors from "./config/cors";
 require("dotenv").config(); // doc file .env
 
-
 const app = express();
 const PORT = process.env.PORT || 8080;
-
-// Connection DB
-connection();
 
 // config view engine
 configViewEngine(app);
