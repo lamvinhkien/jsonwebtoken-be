@@ -4,6 +4,9 @@ import initApiRoutes from "./routes/api";
 import bodyParser from "body-parser";
 import cookieParser from 'cookie-parser';
 import configCors from "./config/cors";
+import configGoogleLogin from "./controller/socialMediaLogin/GoogleLogin";
+import configFacebookLogin from "./controller/socialMediaLogin/FacebookLogin";
+import configConnectSessionSql from "./config/configConnectSessionSql";
 require("dotenv").config(); // doc file .env
 
 const app = express();
@@ -21,6 +24,15 @@ app.use(cookieParser())
 
 // config cors
 configCors(app);
+
+// Config connect session Sql
+configConnectSessionSql(app)
+
+// config Google login
+configGoogleLogin()
+
+// config Facebook login
+configFacebookLogin()
 
 // init routes
 initApiRoutes(app);

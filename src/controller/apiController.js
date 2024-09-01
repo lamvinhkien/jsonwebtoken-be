@@ -83,7 +83,8 @@ const handleLogin = async (req, res) => {
             let data = await loginRegister.handleLoginUser(req.body.valueLogin, req.body.password)
 
             if (data.EC === "1") {
-                res.cookie("jwt", data.DT.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN })
+                res.cookie("at_user", data.DT.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+                res.cookie("rt_user", data.DT.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
             }
 
             return res.json({
@@ -109,7 +110,8 @@ const handleLogin = async (req, res) => {
 
 const handleLogout = (req, res) => {
     try {
-        res.clearCookie("jwt");
+        res.clearCookie("at_user");
+        res.clearCookie("rt_user");
         return res.json({
             EM: "Remove cookies successfully!",
             EC: "1",

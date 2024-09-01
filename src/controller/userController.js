@@ -152,12 +152,18 @@ const deleteFunc = async (req, res) => {
 }
 
 const getUserAccount = async (req, res) => {
-    let token = req.token
-    if (token) {
+    let token = req.accessToken
+    let data = req.dataToken
+
+    if (data) {
+        if (token) {
+            res.cookie("at_user", token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+        }
+
         return res.json({
             EC: "1",
             EM: "Get User Account Successfully!",
-            DT: token
+            DT: data
         })
     } else {
         return res.json({
@@ -172,10 +178,11 @@ const changeInfor = async (req, res) => {
     try {
         let data = await userApiService.changeInfor(req.body)
 
-        if(data.EC === '1'){
-            res.cookie("jwt", data.DT.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN })
+        if (data.EC === '1') {
+            res.cookie("at_user", data.DT.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+            res.cookie("rt_user", data.DT.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
         }
-        
+
         return res.json({
             EM: data.EM,
             EC: data.EC,
@@ -194,9 +201,10 @@ const changeInfor = async (req, res) => {
 const changePassword = async (req, res) => {
     try {
         let data = await userApiService.changePassword(req.body)
-        
-        if(data.EC === '1'){
-            res.clearCookie("jwt");
+
+        if (data.EC === '1') {
+            res.clearCookie("at_user");
+            res.clearCookie("rt_user");
         }
 
         return res.json({

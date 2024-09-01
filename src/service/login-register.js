@@ -2,7 +2,7 @@ import db from "../models/index";
 import bcrypt from 'bcryptjs';
 import Op from "sequelize/lib/operators";
 import { getGroupRoles } from "./JWTService";
-import { createToken } from "../middleware/JWTAction";
+import { createAccessToken, createRefreshToken } from "../middleware/JWTAction";
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -11,8 +11,8 @@ const hashUserPassword = (userPassword) => {
     return hashPassword;
 }
 
-const checkEmail = async (email) => {
-    let check = await db.User.findOne({ where: { email: email } })
+const checkEmail = async (email, type) => {
+    let check = await db.User.findOne({ where: { [Op.and]: [{ email: email }, { typeAccount: type }] } })
     if (check) {
         return true
     }
@@ -34,7 +34,7 @@ const checkPassword = async (inputPassword, hashPassword) => {
 
 const handleRegisterUser = async (user) => {
     try {
-        let isExistEmail = await checkEmail(user.email)
+        let isExistEmail = await checkEmail(user.email, 'LOCAL')
         if (isExistEmail === true) {
             return {
                 EM: "Email is exist!",
@@ -57,15 +57,16 @@ const handleRegisterUser = async (user) => {
             phone: user.phone,
             username: user.username,
             password: hashUserPassword(user.password),
-            groupId: 4
+            groupId: 4,
+            typeAccount: 'LOCAL',
         })
 
         return {
             EM: "Register successfully!",
             EC: "1"
         }
-    } catch (e) {
-        console.log(e)
+    } catch (error) {
+        console.log(error)
         return {
             EM: "Error user register from server",
             EC: "0"
@@ -78,7 +79,10 @@ const handleLoginUser = async (valueLogin, password) => {
     try {
         let userData = await db.User.findOne({
             where: {
-                [Op.or]: [{ email: valueLogin }, { phone: valueLogin }]
+                [Op.and]: [
+                    { [Op.or]: [{ email: valueLogin }, { phone: valueLogin }] },
+                    { typeAccount: 'LOCAL' }
+                ]
             }
         })
 
@@ -88,23 +92,31 @@ const handleLoginUser = async (valueLogin, password) => {
                 let scope = await getGroupRoles(userData)
 
                 let payload = {
+                    id: userData.id,
                     email: userData.email,
                     username: userData.username,
                     phone: userData.phone,
                     data: scope,
                 }
 
-                let token = await createToken(payload)
+                let accessToken = await createAccessToken(payload)
+                let refreshToken = await createRefreshToken(payload)
+
+                await userData.update({
+                    refreshToken: refreshToken
+                })
 
                 return {
                     EM: "Login successfully!",
                     EC: "1",
                     DT: {
-                        access_token: token,
+                        access_token: accessToken,
+                        refresh_token: refreshToken,
                         data: scope,
                         email: userData.email,
                         phone: userData.phone,
-                        username: userData.username
+                        username: userData.username,
+                        typeAccount: userData.typeAccount,
                     }
                 }
             }
@@ -126,6 +138,153 @@ const handleLoginUser = async (valueLogin, password) => {
 
 }
 
+const handleLoginSocialMedia = async (type, dataRaw) => {
+    try {
+        let user = null
+
+        user = await db.User.findOne({
+            where: { email: dataRaw.email, typeAccount: type },
+            raw: true
+        })
+
+        if (!user) {
+            user = await db.User.create({
+                email: dataRaw.email,
+                username: dataRaw.username,
+                typeAccount: type,
+                groupId: 4
+            })
+            user = user.get({ plain: true })
+
+            let scope = await getGroupRoles(user)
+            let payload = {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                phone: user.phone ? user.phone : '',
+                typeAccount: user.typeAccount,
+                data: scope,
+            }
+            let accessToken = await createAccessToken(payload)
+            let refreshToken = await createRefreshToken(payload)
+
+            return {
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                data: scope,
+                email: payload.email,
+                phone: payload.phone,
+                typeAccount: payload.typeAccount,
+                username: payload.username,
+            }
+        } else {
+            let scope = await getGroupRoles(user)
+            let payload = {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                phone: user.phone ? user.phone : '',
+                typeAccount: user.typeAccount,
+                data: scope,
+            }
+            let accessToken = await createAccessToken(payload)
+            let refreshToken = await createRefreshToken(payload)
+
+            return {
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                data: scope,
+                email: payload.email,
+                phone: payload.phone,
+                typeAccount: payload.typeAccount,
+                username: payload.username,
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error user social-media login from server",
+            EC: "0",
+            DT: ""
+        }
+    }
+}
+
+const handleLoginFacebook = async (dataRaw) => {
+    try {
+        let user = null
+
+        user = await db.User.findOne({
+            where: { idFacebook: dataRaw.idFacebook },
+            raw: true
+        })
+
+        if (!user) {
+            user = await db.User.create({
+                email: '',
+                username: dataRaw.username,
+                idFacebook: dataRaw.idFacebook,
+                typeAccount: 'FACEBOOK',
+                groupId: 4
+            })
+            user = user.get({ plain: true })
+
+            let scope = await getGroupRoles(user)
+            let payload = {
+                id: user.id,
+                idFacebook: user.idFacebook,
+                email: '',
+                username: user.username,
+                phone: user.phone ? user.phone : '',
+                typeAccount: user.typeAccount,
+                data: scope,
+            }
+            let accessToken = await createAccessToken(payload)
+            let refreshToken = await createRefreshToken(payload)
+
+            return {
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                data: scope,
+                email: '',
+                phone: payload.phone,
+                typeAccount: payload.typeAccount,
+                username: payload.username,
+            }
+        } else {
+            let scope = await getGroupRoles(user)
+            let payload = {
+                id: user.id,
+                idFacebook: user.idFacebook,
+                email: '',
+                username: user.username,
+                phone: user.phone ? user.phone : '',
+                typeAccount: user.typeAccount,
+                data: scope,
+            }
+            let accessToken = await createAccessToken(payload)
+            let refreshToken = await createRefreshToken(payload)
+
+            return {
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                data: scope,
+                email: '',
+                phone: payload.phone,
+                typeAccount: payload.typeAccount,
+                username: payload.username,
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error user social-media login from server",
+            EC: "0",
+            DT: ""
+        }
+    }
+}
+
 module.exports = {
-    handleRegisterUser, handleLoginUser
+    handleRegisterUser, handleLoginUser, handleLoginSocialMedia, handleLoginFacebook
 }

@@ -1,6 +1,6 @@
 import db from "../models/index";
 import { getGroupRoles } from "./JWTService";
-import { createToken } from "../middleware/JWTAction";
+import { createAccessToken } from "../middleware/JWTAction";
 
 const getAllGroup = async () => {
     try {
@@ -100,7 +100,7 @@ const assignRoleForGroup = async (data) => {
             data: scope,
         }
 
-        let token = await createToken(payload)
+        let token = await createAccessToken(payload)
 
         return {
             EM: "Assign role for group successfully!",

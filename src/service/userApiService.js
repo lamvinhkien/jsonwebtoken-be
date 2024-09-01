@@ -1,7 +1,9 @@
 import db from "../models/index";
 import bcrypt from 'bcryptjs';
 import { getGroupRoles } from "./JWTService";
-import { createToken } from "../middleware/JWTAction";
+import { createAccessToken, createRefreshToken } from "../middleware/JWTAction";
+import Op from "sequelize/lib/operators";
+
 
 // hash password
 const salt = bcrypt.genSaltSync(10);
@@ -10,8 +12,8 @@ const hashUserPassword = (userPassword) => {
     return hashPassword;
 }
 
-const checkEmail = async (email) => {
-    let check = await db.User.findOne({ where: { email: email } })
+const checkEmail = async (email, type) => {
+    let check = await db.User.findOne({ where: { [Op.and]: [{ email: email }, { typeAccount: type }] } })
     if (check) {
         return true
     }
@@ -38,7 +40,7 @@ const getUserWithPagination = async (page, limit) => {
         let offset = (page - 1) * limit
         let { count, rows } = await db.User.findAndCountAll({
             order: [["id", "DESC"]],
-            attributes: ["id", "email", "phone", "username", "address", "sex"],
+            attributes: ["id", "email", "phone", "username", "typeAccount", "address", "sex"],
             include: { model: db.Group, attributes: ["name", "description", "id"] },
             offset: offset,
             limit: limit
@@ -63,7 +65,7 @@ const getUserWithPagination = async (page, limit) => {
 
 const createNewUser = async (user) => {
     try {
-        let isExistEmail = await checkEmail(user.email)
+        let isExistEmail = await checkEmail(user.email, 'LOCAL')
         if (isExistEmail === true) {
             return {
                 EM: "Email is exist!",
@@ -83,7 +85,7 @@ const createNewUser = async (user) => {
 
         let password = hashUserPassword(user.password)
 
-        let data = await db.User.create({ ...user, password: password })
+        let data = await db.User.create({ ...user, password: password, typeAccount: 'LOCAL' })
         return {
             EM: "Create new user successfully!",
             EC: "1",
@@ -171,18 +173,26 @@ const deleteUser = async (id) => {
 const changeInfor = async (userData) => {
     try {
         let user = await db.User.findOne({
-            where: { email: userData.email }
+            where: {
+                [Op.and]: [
+                    { email: userData.email },
+                    { typeAccount: userData.typeAccount }
+                ]
+            }
         })
 
         if (user) {
+            let userId = user.id
             let userEmail = user.email
             let userPhone = user.phone
+            let typeAccount = user.typeAccount
 
+            // data change
             let dataEmail = userData.changeData.email
             let dataPhone = userData.changeData.phone
             let dataUsername = userData.changeData.username
 
-            let checkEmailExist = await checkEmail(dataEmail)
+            let checkEmailExist = await checkEmail(dataEmail, typeAccount)
             let checkPhoneExist = await checkPhone(dataPhone)
 
             if (!(dataEmail === userEmail || checkEmailExist === false)) {
@@ -201,28 +211,41 @@ const changeInfor = async (userData) => {
                 }
             }
 
-            await user.update({
-                email: dataEmail,
-                phone: dataPhone,
-                username: dataUsername,
-            })
+            let userUpdate = null;
+
+            if (user.typeAccount === 'LOCAL') {
+                userUpdate = await user.update({
+                    email: dataEmail,
+                    phone: dataPhone,
+                    username: dataUsername,
+                })
+            } else {
+                userUpdate = await user.update({
+                    phone: dataPhone,
+                    username: dataUsername,
+                })
+            }
 
             let scope = await getGroupRoles(userData)
 
             let payload = {
-                email: dataEmail,
-                username: dataUsername,
-                phone: dataPhone,
+                id: userId,
+                email: userUpdate.email,
+                username: userUpdate.username,
+                phone: userUpdate.phone,
                 data: scope,
+                typeAccount: typeAccount
             }
 
-            let token = await createToken(payload)
+            let access_token = await createAccessToken(payload)
+            let refresh_token = await createRefreshToken(payload)
 
             return {
                 EM: "Save changes successfully!",
                 EC: "1",
                 DT: {
-                    access_token: token,
+                    access_token: access_token,
+                    refresh_token: refresh_token
                 }
             }
         } else {
@@ -253,48 +276,48 @@ const changePassword = async (userData) => {
             where: { email: userData.email }
         })
 
-        if(user){
+        if (user) {
             let currentPassword = userData.changeData.currentPassword
             let newPassword = userData.changeData.newPassword
             let confirmNewPassword = userData.changeData.confirmNewPassword
             let isCorrectPassword = await checkPassword(currentPassword, user.password)
 
-            if(!currentPassword){
+            if (!currentPassword) {
                 return {
                     EM: "Please enter current password.",
                     EC: "0",
                     DT: 'current'
                 }
             }
-            if(!newPassword){
+            if (!newPassword) {
                 return {
                     EM: "Please enter new password.",
                     EC: "0",
                     DT: 'new'
                 }
             }
-            if(!confirmNewPassword){
+            if (!confirmNewPassword) {
                 return {
                     EM: "Please enter confirm new password.",
                     EC: "0",
                     DT: 'confirm'
                 }
             }
-            if(confirmNewPassword !== newPassword){
+            if (confirmNewPassword !== newPassword) {
                 return {
                     EM: "New password & Confirm password isn't same",
                     EC: "0",
                     DT: 'isNotSame'
                 }
             }
-            if(!isCorrectPassword){
+            if (!isCorrectPassword) {
                 return {
                     EM: "Incorrect current password.",
                     EC: "0",
                     DT: 'incorrect'
                 }
             }
-            if(newPassword === currentPassword){
+            if (newPassword === currentPassword) {
                 return {
                     EM: "New password same as current password",
                     EC: "0",

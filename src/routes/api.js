@@ -3,6 +3,7 @@ import apiController from "../controller/apiController";
 import userController from "../controller/userController";
 import roleController from "../controller/roleController";
 import groupController from "../controller/groupController";
+import passport from "passport";
 import { checkUserLogin, checkUserPermission } from "../middleware/JWTAction";
 
 const router = express.Router();
@@ -13,7 +14,26 @@ const initApiRoutes = (app) => {
     router.post("/login", apiController.handleLogin)
     router.post("/logout", checkUserLogin, apiController.handleLogout)
 
-    
+    // Google
+    router.get("/login/google", passport.authenticate('google'))
+    router.get('/oauth2/redirect/google', passport.authenticate('google', {
+        failureRedirect: 'http://localhost:3000/login'
+    }), (req, res) => {
+        res.cookie("at_user", req.user.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+        res.cookie("rt_user", req.user.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+        res.redirect('http://localhost:3000/users')
+    });
+
+    // Facebook
+    router.get("/login/facebook", passport.authenticate('facebook'))
+    router.get('/oauth2/redirect/facebook', passport.authenticate('facebook', {
+        failureRedirect: 'http://localhost:3000/login'
+    }), (req, res) => {
+        res.cookie("at_user", req.user.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+        res.cookie("rt_user", req.user.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+        res.redirect('http://localhost:3000/users')
+    });
+
     // User routes
     router.get("/user/show-all", checkUserLogin, checkUserPermission, userController.readFunc)
     router.post("/user/create", checkUserLogin, checkUserPermission, userController.createFunc)
@@ -38,7 +58,7 @@ const initApiRoutes = (app) => {
     router.post("/group/create", checkUserLogin, checkUserPermission, groupController.createFunc)
     router.put("/group/update", checkUserLogin, checkUserPermission, groupController.updateFunc)
     router.delete("/group/delete", checkUserLogin, checkUserPermission, groupController.deleteFunc)
-    
+
     return app.use("/api", router)
 }
 
