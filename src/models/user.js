@@ -24,7 +24,9 @@ module.exports = (sequelize, DataTypes) => {
     typeAccount: DataTypes.STRING,
     refreshToken: DataTypes.STRING,
     groupId: DataTypes.INTEGER,
+    idGoogle: DataTypes.STRING,
     idFacebook: DataTypes.STRING,
+    codeOTP: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'User',

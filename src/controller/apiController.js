@@ -1,4 +1,8 @@
 import loginRegister from "../service/login-register"
+import nodemailer from 'nodemailer'
+import * as handlebars from 'handlebars';
+import * as fs from 'fs';
+import * as path from 'path';
 require("dotenv").config(); // doc file .env
 
 const handleRegister = async (req, res) => {
@@ -53,6 +57,7 @@ const handleRegister = async (req, res) => {
         return res.json({
             EM: data.EM,
             EC: data.EC,
+            DT: data.DT,
         })
     } catch (error) {
         console.log(error)
@@ -112,6 +117,9 @@ const handleLogout = (req, res) => {
     try {
         res.clearCookie("at_user");
         res.clearCookie("rt_user");
+        res.clearCookie("connect.sid");
+        req.session.destroy();
+
         return res.json({
             EM: "Remove cookies successfully!",
             EC: "1",
@@ -127,6 +135,124 @@ const handleLogout = (req, res) => {
     }
 }
 
+const handleForgotPassword = async (req, res) => {
+    try {
+        const emailReq = req.body.email
+        const OTP = Math.floor(100000 + Math.random() * 900000)
+        let regEmail = /\S+@\S+\.\S+/;
+        let validateEmail = regEmail.test(emailReq)
+
+        // config read file html
+        const filePath = path.join(__dirname, '../templates/forgot-pw.html');
+        const source = fs.readFileSync(filePath, 'utf-8').toString();
+        const template = handlebars.compile(source);
+        const replacements = {
+            email: emailReq,
+            otp: OTP
+        };
+        const htmlToSend = template(replacements);
+
+        // Check email exist
+        if (validateEmail === false || emailReq === '') {
+            return res.json({
+                EC: '0',
+                EM: 'Email is invalid.',
+                DT: 'email'
+            })
+        }
+
+        const updateCodeUser = await loginRegister.handleUpdateCodeUser(emailReq, OTP)
+        if (updateCodeUser.EC === '0') {
+            return res.json({
+                EC: updateCodeUser.EC,
+                EM: updateCodeUser.EM,
+                DT: updateCodeUser.DT
+            })
+        }
+
+        // Nodemailer send email
+        const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.GOOGLE_APP_EMAIL,
+                pass: process.env.GOOGLE_APP_PASSWORD
+            },
+        });
+        transporter.sendMail({
+            from: `JWT Project <${process.env.GOOGLE_APP_EMAIL}>`,
+            to: emailReq,
+            subject: "RESET YOUR PASSWORD JWT PROJECT",
+            text: "RESET YOUR PASSWORD JWT PROJECT",
+            html: htmlToSend
+        });
+
+        return res.json({
+            EC: '1',
+            EM: 'Send successfully!',
+            DT: ''
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+
+}
+
+const handleResetPassword = async (req, res) => {
+    try {
+        let email = req.body.email
+        let newPassword = req.body.newPassword
+        let confirmPassword = req.body.confirmPassword
+
+        let regEmail = /\S+@\S+\.\S+/;
+        let validateEmail = regEmail.test(email)
+        if (!validateEmail || email === '') {
+            return res.json({
+                EM: "Email is invalid!",
+                EC: "0",
+                DT: "email"
+            })
+        }
+
+        if (newPassword.length < 6) {
+            return res.json({
+                EM: "Password length must be at lastest 6 character!",
+                EC: "0",
+                DT: "new"
+            })
+        }
+
+        if (confirmPassword !== newPassword) {
+            return res.json({
+                EM: "New password and confirm password is not same!",
+                EC: "0",
+                DT: "confirm"
+            })
+        }
+
+        let data = await loginRegister.handleResetPassword(req.body)
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
 module.exports = {
-    handleRegister, handleLogin, handleLogout
+    handleRegister, handleLogin, handleLogout, handleForgotPassword, handleResetPassword
 }

@@ -12,8 +12,8 @@ const hashUserPassword = (userPassword) => {
     return hashPassword;
 }
 
-const checkEmail = async (email, type) => {
-    let check = await db.User.findOne({ where: { [Op.and]: [{ email: email }, { typeAccount: type }] } })
+const checkEmail = async (email) => {
+    let check = await db.User.findOne({ where: { email: email } })
     if (check) {
         return true
     }
@@ -174,28 +174,27 @@ const changeInfor = async (userData) => {
     try {
         let user = await db.User.findOne({
             where: {
-                [Op.and]: [
-                    { email: userData.email },
-                    { typeAccount: userData.typeAccount }
-                ]
+                id: userData.id
             }
         })
 
         if (user) {
+            // data user
             let userId = user.id
             let userEmail = user.email
             let userPhone = user.phone
             let typeAccount = user.typeAccount
 
             // data change
-            let dataEmail = userData.changeData.email
-            let dataPhone = userData.changeData.phone
+            let dataEmail = userData.changeData.email ? userData.changeData.email : ''
+            let dataPhone = userData.changeData.phone ? userData.changeData.phone : ''
             let dataUsername = userData.changeData.username
 
-            let checkEmailExist = await checkEmail(dataEmail, typeAccount)
+            let checkEmailExist = await checkEmail(dataEmail)
             let checkPhoneExist = await checkPhone(dataPhone)
 
-            if (!(dataEmail === userEmail || checkEmailExist === false)) {
+            //Check email and phone
+            if (typeAccount === 'LOCAL' && checkEmailExist === true && dataEmail !== userEmail && dataEmail !== '') {
                 return {
                     EM: "Email exist!",
                     EC: "0",
@@ -203,7 +202,7 @@ const changeInfor = async (userData) => {
                 }
             }
 
-            if (!(dataPhone === userPhone || checkPhoneExist === false)) {
+            if (checkPhoneExist === true && dataPhone !== userPhone && dataPhone !== '') {
                 return {
                     EM: "Phone exist!",
                     EC: "0",
@@ -211,43 +210,72 @@ const changeInfor = async (userData) => {
                 }
             }
 
+
+            // Update user
             let userUpdate = null;
 
-            if (user.typeAccount === 'LOCAL') {
+            if (typeAccount === 'LOCAL') {
                 userUpdate = await user.update({
                     email: dataEmail,
                     phone: dataPhone,
                     username: dataUsername,
                 })
+
+                // New Token
+                let scope = await getGroupRoles(userData)
+
+                let payload = {
+                    id: userId,
+                    email: userUpdate.email,
+                    username: userUpdate.username,
+                    phone: userUpdate.phone,
+                    data: scope,
+                    typeAccount: typeAccount
+                }
+
+                let access_token = await createAccessToken(payload)
+                let refresh_token = await createRefreshToken(payload)
+
+                return {
+                    EM: "Save changes successfully!",
+                    EC: "1",
+                    DT: {
+                        access_token: access_token,
+                        refresh_token: refresh_token
+                    }
+                }
             } else {
                 userUpdate = await user.update({
                     phone: dataPhone,
                     username: dataUsername,
                 })
-            }
 
-            let scope = await getGroupRoles(userData)
+                // New Token
+                let scope = await getGroupRoles(userData)
 
-            let payload = {
-                id: userId,
-                email: userUpdate.email,
-                username: userUpdate.username,
-                phone: userUpdate.phone,
-                data: scope,
-                typeAccount: typeAccount
-            }
+                let payload = {
+                    id: userId,
+                    username: userUpdate.username,
+                    phone: userUpdate.phone,
+                    data: scope,
+                    typeAccount: typeAccount
+                }
 
-            let access_token = await createAccessToken(payload)
-            let refresh_token = await createRefreshToken(payload)
+                let access_token = await createAccessToken(payload)
+                let refresh_token = await createRefreshToken(payload)
 
-            return {
-                EM: "Save changes successfully!",
-                EC: "1",
-                DT: {
-                    access_token: access_token,
-                    refresh_token: refresh_token
+                return {
+                    EM: "Save changes successfully!",
+                    EC: "1",
+                    DT: {
+                        access_token: access_token,
+                        refresh_token: refresh_token
+                    }
                 }
             }
+
+
+
         } else {
             return {
                 EM: "User not exist!",

@@ -176,6 +176,36 @@ const getUserAccount = async (req, res) => {
 
 const changeInfor = async (req, res) => {
     try {
+        let regEmail = /\S+@\S+\.\S+/;
+        let validateEmail = regEmail.test(req.body.changeData.email)
+        if (!validateEmail && req.body.typeAccount === 'LOCAL') {
+            return res.json({
+                EM: "Email is invalid!",
+                EC: "0",
+                DT: "email"
+            })
+        }
+
+        let regPhone = /(0[3|5|7|8|9])+([0-9]{8})\b/g;
+        let validatePhone = regPhone.test(req.body.changeData.phone)
+        if (!validatePhone) {
+            return res.json({
+                EM: "Phone is invalid!",
+                EC: "0",
+                DT: "phone"
+            })
+        }
+
+        let regName = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ'\s]*$/;
+        let validateName = regName.test(req.body.changeData.username)
+        if (!validateName) {
+            return res.json({
+                EM: "Username is invalid!",
+                EC: "0",
+                DT: "username"
+            })
+        }
+
         let data = await userApiService.changeInfor(req.body)
 
         if (data.EC === '1') {

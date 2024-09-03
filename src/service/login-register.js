@@ -96,6 +96,7 @@ const handleLoginUser = async (valueLogin, password) => {
                     email: userData.email,
                     username: userData.username,
                     phone: userData.phone,
+                    typeAccount: userData.typeAccount,
                     data: scope,
                 }
 
@@ -110,6 +111,7 @@ const handleLoginUser = async (valueLogin, password) => {
                     EM: "Login successfully!",
                     EC: "1",
                     DT: {
+                        id: userData.id,
                         access_token: accessToken,
                         refresh_token: refreshToken,
                         data: scope,
@@ -138,20 +140,20 @@ const handleLoginUser = async (valueLogin, password) => {
 
 }
 
-const handleLoginSocialMedia = async (type, dataRaw) => {
+const handleLoginGoogle = async (dataRaw) => {
     try {
         let user = null
 
         user = await db.User.findOne({
-            where: { email: dataRaw.email, typeAccount: type },
+            where: { idGoogle: dataRaw.idGoogle, typeAccount: 'GOOGLE' },
             raw: true
         })
 
         if (!user) {
             user = await db.User.create({
-                email: dataRaw.email,
+                idGoogle: dataRaw.idGoogle,
                 username: dataRaw.username,
-                typeAccount: type,
+                typeAccount: 'GOOGLE',
                 groupId: 4
             })
             user = user.get({ plain: true })
@@ -159,7 +161,7 @@ const handleLoginSocialMedia = async (type, dataRaw) => {
             let scope = await getGroupRoles(user)
             let payload = {
                 id: user.id,
-                email: user.email,
+                idGoogle: user.idGoogle,
                 username: user.username,
                 phone: user.phone ? user.phone : '',
                 typeAccount: user.typeAccount,
@@ -172,7 +174,7 @@ const handleLoginSocialMedia = async (type, dataRaw) => {
                 access_token: accessToken,
                 refresh_token: refreshToken,
                 data: scope,
-                email: payload.email,
+                idGoogle: payload.idGoogle,
                 phone: payload.phone,
                 typeAccount: payload.typeAccount,
                 username: payload.username,
@@ -181,7 +183,7 @@ const handleLoginSocialMedia = async (type, dataRaw) => {
             let scope = await getGroupRoles(user)
             let payload = {
                 id: user.id,
-                email: user.email,
+                idGoogle: user.idGoogle,
                 username: user.username,
                 phone: user.phone ? user.phone : '',
                 typeAccount: user.typeAccount,
@@ -194,7 +196,7 @@ const handleLoginSocialMedia = async (type, dataRaw) => {
                 access_token: accessToken,
                 refresh_token: refreshToken,
                 data: scope,
-                email: payload.email,
+                idGoogle: payload.idGoogle,
                 phone: payload.phone,
                 typeAccount: payload.typeAccount,
                 username: payload.username,
@@ -215,7 +217,7 @@ const handleLoginFacebook = async (dataRaw) => {
         let user = null
 
         user = await db.User.findOne({
-            where: { idFacebook: dataRaw.idFacebook },
+            where: { idFacebook: dataRaw.idFacebook, typeAccount: 'FACEBOOK' },
             raw: true
         })
 
@@ -246,6 +248,7 @@ const handleLoginFacebook = async (dataRaw) => {
                 access_token: accessToken,
                 refresh_token: refreshToken,
                 data: scope,
+                idFacebook: payload.idFacebook,
                 email: '',
                 phone: payload.phone,
                 typeAccount: payload.typeAccount,
@@ -268,6 +271,7 @@ const handleLoginFacebook = async (dataRaw) => {
             return {
                 access_token: accessToken,
                 refresh_token: refreshToken,
+                idFacebook: payload.idFacebook,
                 data: scope,
                 email: '',
                 phone: payload.phone,
@@ -285,6 +289,83 @@ const handleLoginFacebook = async (dataRaw) => {
     }
 }
 
+const handleUpdateCodeUser = async (email, code) => {
+    try {
+        let user = await db.User.findOne(
+            { where: { [Op.and]: [{ email: email }, { typeAccount: 'LOCAL' }] } }
+        )
+
+        if (!user) {
+            return {
+                EM: "This email is not registered account.",
+                EC: "0",
+                DT: "email"
+            }
+        } else {
+            await user.update(
+                { codeOTP: code },
+            )
+
+            return {
+                EM: "Update code successfully!",
+                EC: "1",
+                DT: ""
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error update user code from server",
+            EC: "0",
+            DT: ""
+        }
+    }
+
+}
+
+const handleResetPassword = async (rawData) => {
+    try {
+        let user = await db.User.findOne(
+            { where: { [Op.and]: [{ email: rawData.email }, { typeAccount: 'LOCAL' }] } }
+        )
+
+        if (!user) {
+            return {
+                EM: "This email is not registered account.",
+                EC: "0",
+                DT: "email"
+            }
+        }
+
+        if (user.codeOTP !== rawData.codeOTP) {
+            return {
+                EM: "Code OTP is invalid.",
+                EC: "0",
+                DT: "code"
+            }
+        }
+
+        let newPassword = hashUserPassword(rawData.confirmPassword)
+        await user.update(
+            { password: newPassword },
+        )
+
+        return {
+            EM: "Reset password successfully!",
+            EC: "1",
+            DT: ""
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error update user code from server",
+            EC: "0",
+            DT: ""
+        }
+    }
+
+}
+
 module.exports = {
-    handleRegisterUser, handleLoginUser, handleLoginSocialMedia, handleLoginFacebook
+    handleRegisterUser, handleLoginUser, handleLoginGoogle, handleLoginFacebook, handleUpdateCodeUser, handleResetPassword
 }

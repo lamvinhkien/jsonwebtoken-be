@@ -94,9 +94,11 @@ const assignRoleForGroup = async (data) => {
         let scope = await getGroupRoles(data.user)
 
         let payload = {
-            email: data.user.email,
+            id: data.user.id,
+            email: data.user.email ? data.user.email : '',
             username: data.user.username,
-            phone: data.user.phone,
+            phone: data.user.phone ?  data.user.phone : '',
+            typeAccount: data.user.typeAccount,
             data: scope,
         }
 

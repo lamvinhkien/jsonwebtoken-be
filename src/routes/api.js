@@ -5,6 +5,7 @@ import roleController from "../controller/roleController";
 import groupController from "../controller/groupController";
 import passport from "passport";
 import { checkUserLogin, checkUserPermission } from "../middleware/JWTAction";
+require("dotenv").config();
 
 const router = express.Router();
 
@@ -17,22 +18,26 @@ const initApiRoutes = (app) => {
     // Google
     router.get("/login/google", passport.authenticate('google'))
     router.get('/oauth2/redirect/google', passport.authenticate('google', {
-        failureRedirect: 'http://localhost:3000/login'
+        failureRedirect: process.env.REACT_URL + '/login'
     }), (req, res) => {
         res.cookie("at_user", req.user.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
         res.cookie("rt_user", req.user.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
-        res.redirect('http://localhost:3000/users')
+        res.redirect(process.env.REACT_URL + '/users')
     });
 
     // Facebook
     router.get("/login/facebook", passport.authenticate('facebook'))
     router.get('/oauth2/redirect/facebook', passport.authenticate('facebook', {
-        failureRedirect: 'http://localhost:3000/login'
+        failureRedirect: process.env.REACT_URL + '/login'
     }), (req, res) => {
         res.cookie("at_user", req.user.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
         res.cookie("rt_user", req.user.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
-        res.redirect('http://localhost:3000/users')
+        res.redirect(process.env.REACT_URL + '/users')
     });
+
+    // Forgot password
+    router.post('/send-otp', apiController.handleForgotPassword)
+    router.post('/reset-password', apiController.handleResetPassword)
 
     // User routes
     router.get("/user/show-all", checkUserLogin, checkUserPermission, userController.readFunc)
