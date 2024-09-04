@@ -101,6 +101,7 @@ const handleLogin = async (req, res) => {
             return res.json({
                 EM: "Your email or phone number is invalid!",
                 EC: "0",
+                DT: 'email'
             })
         }
     } catch (error) {
@@ -181,7 +182,7 @@ const handleForgotPassword = async (req, res) => {
             },
         });
         transporter.sendMail({
-            from: `JWT Project <${process.env.GOOGLE_APP_EMAIL}>`,
+            from: `Lam Vinh Kien <${process.env.GOOGLE_APP_EMAIL}>`,
             to: emailReq,
             subject: "RESET YOUR PASSWORD JWT PROJECT",
             text: "RESET YOUR PASSWORD JWT PROJECT",

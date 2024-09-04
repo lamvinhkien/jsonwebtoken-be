@@ -59,6 +59,8 @@ const handleRegisterUser = async (user) => {
             password: hashUserPassword(user.password),
             groupId: 4,
             typeAccount: 'LOCAL',
+            wrongLogin: 0,
+            expiresLock: 0
         })
 
         return {
@@ -86,9 +88,46 @@ const handleLoginUser = async (valueLogin, password) => {
             }
         })
 
-        if (userData) {
+        if (!userData) {
+            return {
+                EM: "Your Email/Phone number is incorrect, Please try again!",
+                EC: "0",
+                DT: "email"
+            }
+        } else {
+            let maxWrongPw = 4
+            let wrongLogin = +userData.wrongLogin
+            let expiresLock = +userData.expiresLock
+            let now = Date.now()
             let isCorrectPassword = await checkPassword(password, userData.password)
-            if (isCorrectPassword) {
+
+            if (!isCorrectPassword) {
+                if (expiresLock > now) {
+                    return {
+                        EM: "Your account has been locked in 1 minute, please login again later!",
+                        EC: "0",
+                        DT: ""
+                    }
+                }
+
+                if (wrongLogin === maxWrongPw) {
+                    await userData.update({ wrongLogin: 0, expiresLock: now + 60000 })
+                    return {
+                        EM: "Multiple incorrect login attempts, your account has been locked.",
+                        EC: "0",
+                        DT: ""
+                    }
+                }
+
+                await userData.update({ wrongLogin: wrongLogin + 1 })
+                return {
+                    EM: "Password is incorrect, Please try again!",
+                    EC: "0",
+                    DT: "password"
+                }
+            } else {
+                await userData.update({ wrongLogin: 0, expiresLock: 0 })
+
                 let scope = await getGroupRoles(userData)
 
                 let payload = {
@@ -122,12 +161,6 @@ const handleLoginUser = async (valueLogin, password) => {
                     }
                 }
             }
-        }
-
-        return {
-            EM: "Your Email/Phone number or password is incorrect, Please try again!",
-            EC: "0",
-            DT: ""
         }
     } catch (error) {
         console.log(error)
