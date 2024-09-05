@@ -101,15 +101,15 @@ const handleLoginUser = async (valueLogin, password) => {
             let now = Date.now()
             let isCorrectPassword = await checkPassword(password, userData.password)
 
-            if (!isCorrectPassword) {
-                if (expiresLock > now) {
-                    return {
-                        EM: "Your account has been locked in 1 minute, please login again later!",
-                        EC: "0",
-                        DT: ""
-                    }
+            if (expiresLock > now) {
+                return {
+                    EM: "Your account has been locked in 1 minute, please login again later!",
+                    EC: "0",
+                    DT: ""
                 }
+            }
 
+            if (!isCorrectPassword) {
                 if (wrongLogin === maxWrongPw) {
                     await userData.update({ wrongLogin: 0, expiresLock: now + 60000 })
                     return {
