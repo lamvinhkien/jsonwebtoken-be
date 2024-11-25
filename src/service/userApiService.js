@@ -2,7 +2,6 @@ import db from "../models/index";
 import bcrypt from 'bcryptjs';
 import { getGroupRoles } from "./JWTService";
 import { createAccessToken, createRefreshToken } from "../middleware/JWTAction";
-import Op from "sequelize/lib/operators";
 
 
 // hash password
@@ -320,6 +319,13 @@ const changePassword = async (userData) => {
             if (!newPassword) {
                 return {
                     EM: "Please enter new password.",
+                    EC: "0",
+                    DT: 'new'
+                }
+            }
+            if (newPassword && newPassword.length < 6) {
+                return {
+                    EM: "New password length must be at lastest 6 character.",
                     EC: "0",
                     DT: 'new'
                 }

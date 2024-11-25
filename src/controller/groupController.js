@@ -71,7 +71,7 @@ const assignRoleForGroup = async (req, res) => {
     try {
         let data = await groupApiService.assignRoleForGroup(req.body)
 
-        if(data.EC === '1'){
+        if (data.EC === '1') {
             res.cookie("at_user", data.DT.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
         }
 

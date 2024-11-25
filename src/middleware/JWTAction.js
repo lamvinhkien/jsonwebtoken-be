@@ -85,6 +85,7 @@ const checkUserLogin = (req, res, next) => {
                     email: refresh_token.data.email,
                     username: refresh_token.data.username,
                     phone: refresh_token.data.phone,
+                    typeAccount: refresh_token.data.typeAccount,
                     data: refresh_token.data.data,
                 }
                 let new_at = createAccessToken(payload)

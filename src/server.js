@@ -7,13 +7,15 @@ import configCors from "./config/cors";
 import configGoogleLogin from "./controller/socialMediaLogin/GoogleLogin";
 import configFacebookLogin from "./controller/socialMediaLogin/FacebookLogin";
 import configConnectSessionSql from "./config/configConnectSessionSql";
-require("dotenv").config(); // doc file .env
+require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
 // config view engine
 configViewEngine(app);
+
+app.use(express.static('src/public'));
 
 // config body-parser
 app.use(bodyParser.json());

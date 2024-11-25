@@ -3,17 +3,21 @@ import apiController from "../controller/apiController";
 import userController from "../controller/userController";
 import roleController from "../controller/roleController";
 import groupController from "../controller/groupController";
+import taskController from "../controller/taskController";
 import passport from "passport";
 import { checkUserLogin, checkUserPermission } from "../middleware/JWTAction";
+import upload from "../middleware/UploadAction";
 require("dotenv").config();
 
 const router = express.Router();
 
 const initApiRoutes = (app) => {
+
     // Login, Logout, Register
     router.post("/register", apiController.handleRegister)
     router.post("/login", apiController.handleLogin)
     router.post("/logout", checkUserLogin, apiController.handleLogout)
+
 
     // Google
     router.get("/login/google", passport.authenticate('google'))
@@ -25,6 +29,7 @@ const initApiRoutes = (app) => {
         res.redirect(process.env.REACT_URL + '/users')
     });
 
+
     // Facebook
     router.get("/login/facebook", passport.authenticate('facebook'))
     router.get('/oauth2/redirect/facebook', passport.authenticate('facebook', {
@@ -35,9 +40,19 @@ const initApiRoutes = (app) => {
         res.redirect(process.env.REACT_URL + '/users')
     });
 
+
     // Forgot password
     router.post('/send-otp', apiController.handleForgotPassword)
     router.post('/reset-password', apiController.handleResetPassword)
+
+    
+    // Task routes
+    router.get("/task/show-all", checkUserLogin, checkUserPermission, taskController.readFunc)
+    router.post("/task/create", checkUserLogin, checkUserPermission, upload.array('files'), taskController.createFunc)
+    router.post("/task/get-document", checkUserLogin, taskController.getDocumentFunc)
+    router.post("/task/update", checkUserLogin, checkUserPermission, upload.array('files'), taskController.updateFunc)
+    router.post("/task/delete", checkUserLogin, checkUserPermission, taskController.deleteFunc)
+
 
     // User routes
     router.get("/user/show-all", checkUserLogin, checkUserPermission, userController.readFunc)
@@ -63,6 +78,7 @@ const initApiRoutes = (app) => {
     router.post("/group/create", checkUserLogin, checkUserPermission, groupController.createFunc)
     router.put("/group/update", checkUserLogin, checkUserPermission, groupController.updateFunc)
     router.delete("/group/delete", checkUserLogin, checkUserPermission, groupController.deleteFunc)
+
 
     return app.use("/api", router)
 }

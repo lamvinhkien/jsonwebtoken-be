@@ -6,7 +6,7 @@ const getAllGroup = async () => {
     try {
         let group = await db.Group.findAll({
             order: [
-                ["name", "ASC"]
+                ["name", "DESC"]
             ]
         })
 
