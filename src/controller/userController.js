@@ -1,5 +1,5 @@
 import userApiService from "../service/userApiService";
-require("dotenv").config(); // doc file .env
+import 'dotenv/config'; 
 
 const readFunc = async (req, res) => {
     try {

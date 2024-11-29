@@ -1,7 +1,7 @@
 import passport from 'passport';
 import FacebookStrategy from 'passport-facebook';
 import { handleLoginFacebook } from '../../service/login-register';
-require("dotenv").config();
+import 'dotenv/config';
 
 const configFacebookLogin = () => {
     passport.use(new FacebookStrategy({

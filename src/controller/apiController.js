@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer'
 import * as handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
-require("dotenv").config(); // doc file .env
+import 'dotenv/config'; 
 
 const handleRegister = async (req, res) => {
     try {
@@ -184,8 +184,8 @@ const handleForgotPassword = async (req, res) => {
         transporter.sendMail({
             from: `Lam Vinh Kien <${process.env.GOOGLE_APP_EMAIL}>`,
             to: emailReq,
-            subject: "RESET YOUR PASSWORD JWT PROJECT",
-            text: "RESET YOUR PASSWORD JWT PROJECT",
+            subject: "RESET YOUR PASSWORD HR-Portals",
+            text: "RESET YOUR PASSWORD HR-Portals",
             html: htmlToSend
         });
 

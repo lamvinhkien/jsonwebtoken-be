@@ -1,13 +1,13 @@
 import express from "express";
+import passport from "passport";
 import apiController from "../controller/apiController";
 import userController from "../controller/userController";
 import roleController from "../controller/roleController";
 import groupController from "../controller/groupController";
 import taskController from "../controller/taskController";
-import passport from "passport";
 import { checkUserLogin, checkUserPermission } from "../middleware/JWTAction";
 import upload from "../middleware/UploadAction";
-require("dotenv").config();
+import 'dotenv/config';
 
 const router = express.Router();
 

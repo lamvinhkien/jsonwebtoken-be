@@ -1,7 +1,7 @@
 import Sequelize from "sequelize";
 import session from "express-session";
 import passport from 'passport'
-require("dotenv").config(); // doc file .env
+import 'dotenv/config'; 
 
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/config.json')[env];

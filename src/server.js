@@ -1,5 +1,4 @@
 import express from "express";
-import configViewEngine from "./config/viewEngine";
 import initApiRoutes from "./routes/api";
 import bodyParser from "body-parser";
 import cookieParser from 'cookie-parser';
@@ -7,14 +6,12 @@ import configCors from "./config/cors";
 import configGoogleLogin from "./controller/socialMediaLogin/GoogleLogin";
 import configFacebookLogin from "./controller/socialMediaLogin/FacebookLogin";
 import configConnectSessionSql from "./config/configConnectSessionSql";
-require("dotenv").config();
+import 'dotenv/config';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// config view engine
-configViewEngine(app);
-
+// config public files
 app.use(express.static('src/public'));
 
 // config body-parser
@@ -39,7 +36,8 @@ configFacebookLogin()
 // init routes
 initApiRoutes(app);
 
+// running port
 app.listen(PORT, () => {
-    console.log(">>> JWT Backend is running on the port = " + PORT);
+    console.log(">>> Server is running on the port: " + PORT);
 })
 

@@ -1,5 +1,5 @@
 import groupApiService from "../service/groupApiService";
-require("dotenv").config(); // doc file .env
+import 'dotenv/config'; 
 
 const readFunc = async (req, res) => {
     try {

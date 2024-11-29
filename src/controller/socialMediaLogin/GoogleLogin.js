@@ -1,7 +1,7 @@
 import passport from 'passport';
 import GoogleStrategy from 'passport-google-oidc';
 import { handleLoginGoogle } from '../../service/login-register';
-require("dotenv").config();
+import 'dotenv/config';
 
 const configGoogleLogin = () => {
     passport.use(new GoogleStrategy({

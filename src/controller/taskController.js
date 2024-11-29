@@ -1,5 +1,5 @@
 import taskApiService from "../service/taskApiService";
-require("dotenv").config();
+import 'dotenv/config';
 
 const readFunc = async (req, res) => {
     try {

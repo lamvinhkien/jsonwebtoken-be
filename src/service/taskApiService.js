@@ -1,6 +1,6 @@
 import db from "../models/index";
 import fs from "fs-extra";
-require("dotenv").config();
+import 'dotenv/config';
 
 const getAllTask = async () => {
     try {

@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-require("dotenv").config(); // doc file .env
+import 'dotenv/config'; 
 
 const createAccessToken = (payload) => {
     try {
