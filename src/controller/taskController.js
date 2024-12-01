@@ -132,7 +132,91 @@ const deleteFunc = async (req, res) => {
     }
 }
 
+const readReportByManagerFunc = async (req, res) => {
+    try {
+        let data = await taskApiService.getAllReportByManager(req.body.TaskID);
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
+const readReportByEmployeeFunc = async (req, res) => {
+    try {
+        let reqData = {
+            TaskID: req.body.TaskID,
+            UserID: req.body.UserID
+        }
+
+        let data = await taskApiService.getAllReportByEmployee(reqData);
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
+const createReportFunc = async (req, res) => {
+    try {
+        let reqFiles = req.files
+        let reqData = {
+            UserID: req.body.UserID,
+            TaskID: req.body.TaskID
+        }
+
+        let data = await taskApiService.createTaskReport(reqData, reqFiles)
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
+const deleteReportFunc = async (req, res) => {
+    try {
+        let data = await taskApiService.deleteTaskReport(req.body.id)
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
 
 module.exports = {
-    readFunc, createFunc, updateFunc, getDocumentFunc, deleteFunc
+    readFunc, createFunc, updateFunc, getDocumentFunc, deleteFunc,
+    readReportByManagerFunc, createReportFunc, deleteReportFunc, readReportByEmployeeFunc
 }

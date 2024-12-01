@@ -1,6 +1,8 @@
 import db from "../models/index";
 import fs from "fs-extra";
 import 'dotenv/config';
+const { Sequelize } = require('sequelize');
+
 
 const getAllTask = async () => {
     try {
@@ -159,7 +161,139 @@ const deleteTask = async (id) => {
     }
 }
 
+const getAllReportByManager = async (id) => {
+    try {
+        let report = await db.Task_User_Document.findAll({
+            where: { TaskID: id },
+            raw: true,
+            attributes: [
+                'id',
+                'UserID',
+                'TaskID',
+                'FilePath',
+                'createdAt',
+                'updatedAt',
+                [Sequelize.col('User.email'), 'email'],
+                [Sequelize.col('User.username'), 'username']
+            ],
+            include: [{ model: db.User, attributes: [] }]
+        })
+
+        if (report && report.length > 0) {
+            report.forEach((item, index) => {
+                if (item.FilePath) {
+                    item.GetFilePath = `http://localhost:${process.env.PORT}/uploads/${item.FilePath}`
+                }
+            })
+        }
+
+        return {
+            EM: "Get report successfully!",
+            EC: "1",
+            DT: report
+        }
+    } catch (error) {
+        console.log(error);
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: "",
+        };
+    }
+}
+
+const getAllReportByEmployee = async (reqData) => {
+    try {
+        let report = await db.Task_User_Document.findAll({ where: { TaskID: reqData.TaskID, UserID: reqData.UserID }, raw: true })
+
+        if (report && report.length > 0) {
+            report.forEach((item, index) => {
+                if (item.FilePath) {
+                    item.GetFilePath = `http://localhost:${process.env.PORT}/uploads/${item.FilePath}`
+                }
+            })
+        }
+
+        return {
+            EM: "Get report successfully!",
+            EC: "1",
+            DT: report
+        }
+    } catch (error) {
+        console.log(error);
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: "",
+        };
+    }
+}
+
+const createTaskReport = async (reqData, reqFiles) => {
+    try {
+        if (reqFiles && reqFiles.length < 0) {
+            return {
+                EM: "Please upload document.",
+                EC: "0",
+                DT: "",
+            };
+        }
+
+        let reports = reqFiles.map((file) => ({
+            UserID: reqData.UserID,
+            TaskID: reqData.TaskID,
+            FilePath: file.filename
+        }));
+
+        await db.Task_User_Document.bulkCreate(reports)
+
+        return {
+            EM: "Create task report successfully!",
+            EC: "1",
+            DT: "",
+        };
+    } catch (error) {
+        console.log(error);
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: "",
+        };
+    }
+}
+
+const deleteTaskReport = async (id) => {
+    try {
+        let report = await db.Task_User_Document.findOne({ where: { id: id }, raw: true })
+
+        if (!report) {
+            return {
+                EM: "Not found report!",
+                EC: "0",
+                DT: "",
+            };
+        }
+
+        await fs.unlink('src/public/uploads/' + report.FilePath)
+
+        await db.Task_User_Document.destroy({ where: { id: id } })
+
+        return {
+            EM: "Delete report successfully!",
+            EC: "1",
+            DT: "",
+        };
+    } catch (error) {
+        console.log(error);
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: "",
+        };
+    }
+}
 
 module.exports = {
-    getAllTask, createTask, updateTask, getDocument, deleteTask
+    getAllTask, createTask, updateTask, getDocument, deleteTask,
+    getAllReportByManager, createTaskReport, getAllReportByEmployee, deleteTaskReport
 }

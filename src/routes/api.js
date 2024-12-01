@@ -12,7 +12,7 @@ import 'dotenv/config';
 const router = express.Router();
 
 const initApiRoutes = (app) => {
-
+    
     // Login, Logout, Register
     router.post("/register", apiController.handleRegister)
     router.post("/login", apiController.handleLogin)
@@ -52,6 +52,10 @@ const initApiRoutes = (app) => {
     router.post("/task/get-document", checkUserLogin, taskController.getDocumentFunc)
     router.post("/task/update", checkUserLogin, checkUserPermission, upload.array('files'), taskController.updateFunc)
     router.post("/task/delete", checkUserLogin, checkUserPermission, taskController.deleteFunc)
+    router.post("/task/show-all-report-by-manager", taskController.readReportByManagerFunc)
+    router.post("/task/show-all-report-by-employee", taskController.readReportByEmployeeFunc)
+    router.post("/task/create-report", upload.array('report'), taskController.createReportFunc)
+    router.post("/task/delete-report", taskController.deleteReportFunc)
 
 
     // User routes
