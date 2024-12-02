@@ -140,7 +140,18 @@ const deleteTask = async (id) => {
         let taskDocument = await db.Task_Document.findAll({ where: { TaskID: task.id }, raw: true })
         if (taskDocument && taskDocument.length > 0) {
             taskDocument.forEach(async (item, index) => {
-                await fs.unlink('src/public/uploads/' + item.FilePath)
+                if (item.FilePath) {
+                    await fs.unlink('src/public/uploads/' + item.FilePath)
+                }
+            })
+        }
+
+        let taskReport = await db.Task_User_Document.findAll({ where: { TaskID: task.id }, raw: true })
+        if (taskReport && taskReport.length > 0) {
+            taskReport.forEach(async (item, index) => {
+                if (item.FilePath) {
+                    await fs.unlink('src/public/uploads/' + item.FilePath)
+                }
             })
         }
 
@@ -248,7 +259,7 @@ const createTaskReport = async (reqData, reqFiles) => {
         await db.Task_User_Document.bulkCreate(reports)
 
         return {
-            EM: "Create task report successfully!",
+            EM: "Upload report successfully!",
             EC: "1",
             DT: "",
         };

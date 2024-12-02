@@ -2,9 +2,8 @@ import db from "../models/index";
 import bcrypt from 'bcryptjs';
 import { getGroupRoles } from "./JWTService";
 import { createAccessToken, createRefreshToken } from "../middleware/JWTAction";
+import fs from "fs-extra";
 
-
-// hash password
 const salt = bcrypt.genSaltSync(10);
 const hashUserPassword = (userPassword) => {
     let hashPassword = bcrypt.hashSync(userPassword, salt);
@@ -143,6 +142,15 @@ const deleteUser = async (id) => {
         })
 
         if (user) {
+            let taskReport = await db.Task_User_Document.findAll({ where: { UserID: user.id }, raw: true })
+            if (taskReport && taskReport.length > 0) {
+                taskReport.forEach(async (item, index) => {
+                    if (item.FilePath) {
+                        await fs.unlink('src/public/uploads/' + item.FilePath)
+                    }
+                })
+            }
+
             await db.User.destroy({
                 where: { id: user.id }
             })

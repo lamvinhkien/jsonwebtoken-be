@@ -26,7 +26,7 @@ const initApiRoutes = (app) => {
     }), (req, res) => {
         res.cookie("at_user", req.user.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
         res.cookie("rt_user", req.user.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
-        res.redirect(process.env.REACT_URL + '/users')
+        res.redirect(process.env.REACT_URL)
     });
 
 
@@ -37,7 +37,7 @@ const initApiRoutes = (app) => {
     }), (req, res) => {
         res.cookie("at_user", req.user.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
         res.cookie("rt_user", req.user.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
-        res.redirect(process.env.REACT_URL + '/users')
+        res.redirect(process.env.REACT_URL)
     });
 
 
@@ -52,10 +52,10 @@ const initApiRoutes = (app) => {
     router.post("/task/get-document", checkUserLogin, taskController.getDocumentFunc)
     router.post("/task/update", checkUserLogin, checkUserPermission, upload.array('files'), taskController.updateFunc)
     router.post("/task/delete", checkUserLogin, checkUserPermission, taskController.deleteFunc)
-    router.post("/task/show-all-report-by-manager", taskController.readReportByManagerFunc)
-    router.post("/task/show-all-report-by-employee", taskController.readReportByEmployeeFunc)
-    router.post("/task/create-report", upload.array('report'), taskController.createReportFunc)
-    router.post("/task/delete-report", taskController.deleteReportFunc)
+    router.post("/task/show-all-report-by-manager", checkUserLogin, checkUserPermission, taskController.readReportByManagerFunc)
+    router.post("/task/show-all-report-by-employee", checkUserLogin, taskController.readReportByEmployeeFunc)
+    router.post("/task/create-report", checkUserLogin, checkUserPermission, upload.array('report'), taskController.createReportFunc)
+    router.post("/task/delete-report", checkUserLogin, checkUserPermission, taskController.deleteReportFunc)
 
 
     // User routes
