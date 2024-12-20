@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import 'dotenv/config'; 
+import 'dotenv/config';
 
 const createAccessToken = (payload) => {
     try {
@@ -120,7 +120,7 @@ const checkUserLogin = (req, res, next) => {
 
 const checkUserPermission = (req, res, next) => {
     let token = req.dataToken
-    let roles = token.data.Roles
+    let roles = token.data ? token.data.Roles : []
 
     let currentUrl = req.path
     let canAccess = roles.some((item) => {

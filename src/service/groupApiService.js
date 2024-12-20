@@ -1,12 +1,38 @@
 import db from "../models/index";
 import { getGroupRoles } from "./JWTService";
 import { createAccessToken } from "../middleware/JWTAction";
+import { Op } from "sequelize";
 
 const getAllGroup = async () => {
     try {
         let group = await db.Group.findAll({
+            where: { name: { [Op.ne]: 'Admin' } },
             order: [
                 ["name", "DESC"]
+            ]
+        })
+
+        return {
+            EM: "Get group successfully!",
+            EC: "1",
+            DT: group
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        }
+    }
+}
+
+const getAllGroupByAdmin = async () => {
+    try {
+        let group = await db.Group.findAll({
+            where: { name: { [Op.ne]: 'None' } },
+            order: [
+                ["name", "ASC"]
             ]
         })
 
@@ -29,6 +55,7 @@ const getGroupWithPagination = async (page, limit) => {
     try {
         let offset = (page - 1) * limit
         let { count, rows } = await db.Group.findAndCountAll({
+            where: { name: { [Op.notIn]: ['Admin', 'None'] } },
             attributes: ["id", "name", "description"],
             offset: offset,
             limit: limit,
@@ -85,11 +112,33 @@ const getGroupWithRoles = async (id) => {
 
 const assignRoleForGroup = async (data) => {
     try {
-        await db.Group_Role.destroy({
-            where: { groupId: data.groupId }
-        })
+        const { groupId, roles } = data;
 
-        await db.Group_Role.bulkCreate(data.roles)
+        const existingRoles = await db.Group_Role.findAll({
+            where: { groupId },
+            attributes: ['roleId'],
+            raw: true,
+        });
+
+        const existingRoleIds = existingRoles.map(role => role.roleId);
+        const newRoleIds = roles.map(role => role.roleId);
+
+        const rolesToAdd = roles.filter(role => !existingRoleIds.includes(role.roleId));
+
+        const rolesToRemove = existingRoles.filter(role => !newRoleIds.includes(role.roleId));
+
+        if (rolesToRemove.length > 0) {
+            await db.Group_Role.destroy({
+                where: {
+                    groupId,
+                    roleId: rolesToRemove.map(role => role.roleId),
+                },
+            });
+        }
+
+        if (rolesToAdd.length > 0) {
+            await db.Group_Role.bulkCreate(rolesToAdd);
+        }
 
         let scope = await getGroupRoles(data.user)
 
@@ -97,7 +146,7 @@ const assignRoleForGroup = async (data) => {
             id: data.user.id,
             email: data.user.email ? data.user.email : '',
             username: data.user.username,
-            phone: data.user.phone ?  data.user.phone : '',
+            phone: data.user.phone ? data.user.phone : '',
             typeAccount: data.user.typeAccount,
             data: scope,
         }
@@ -252,5 +301,6 @@ const updateGroup = async (data) => {
 
 
 module.exports = {
-    getAllGroup, getGroupWithRoles, assignRoleForGroup, createGroups, deleteGroup, updateGroup, getGroupWithPagination
+    getAllGroup, getGroupWithRoles, assignRoleForGroup, createGroups, deleteGroup, updateGroup,
+    getAllGroupByAdmin, getGroupWithPagination
 }

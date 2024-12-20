@@ -1,9 +1,27 @@
 import groupApiService from "../service/groupApiService";
-import 'dotenv/config'; 
+import 'dotenv/config';
 
 const readFunc = async (req, res) => {
     try {
         let data = await groupApiService.getAllGroup()
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
+const readByAdminFunc = async (req, res) => {
+    try {
+        let data = await groupApiService.getAllGroupByAdmin()
         return res.json({
             EM: data.EM,
             EC: data.EC,
@@ -165,5 +183,6 @@ const deleteFunc = async (req, res) => {
 
 
 module.exports = {
-    readFunc, readFuncWithRoles, assignRoleForGroup, createFunc, updateFunc, deleteFunc, readFuncWithPage
+    readFunc, readFuncWithRoles, assignRoleForGroup, createFunc, updateFunc, deleteFunc,
+    readByAdminFunc, readFuncWithPage
 }

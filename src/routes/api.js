@@ -12,7 +12,7 @@ import 'dotenv/config';
 const router = express.Router();
 
 const initApiRoutes = (app) => {
-    
+
     // Login, Logout, Register
     router.post("/register", apiController.handleRegister)
     router.post("/login", apiController.handleLogin)
@@ -45,7 +45,7 @@ const initApiRoutes = (app) => {
     router.post('/send-otp', apiController.handleForgotPassword)
     router.post('/reset-password', apiController.handleResetPassword)
 
-    
+
     // Task routes
     router.get("/task/show-all", checkUserLogin, checkUserPermission, taskController.readFunc)
     router.post("/task/create", checkUserLogin, checkUserPermission, upload.array('files'), taskController.createFunc)
@@ -69,15 +69,16 @@ const initApiRoutes = (app) => {
 
 
     // Role routes
-    router.get("/role/get-all", checkUserLogin, roleController.readFuncWithoutPage)
+    router.get("/role/show-all-for-assign", checkUserLogin, checkUserPermission, roleController.readFuncWithoutPage)
     router.get("/role/show-all", checkUserLogin, checkUserPermission, roleController.readFunc)
     router.put("/role/update", checkUserLogin, checkUserPermission, roleController.updateFunc)
 
 
     // Group routes
     router.get("/group/show-all", checkUserLogin, groupController.readFunc)
+    router.get("/group/show-all-for-assign", checkUserLogin, checkUserPermission, groupController.readByAdminFunc)
     router.get("/group/show-all-with-pagination", checkUserLogin, checkUserPermission, groupController.readFuncWithPage)
-    router.post("/group/get-group-with-roles", checkUserLogin, groupController.readFuncWithRoles)
+    router.post("/group/get-group-with-roles", checkUserLogin, checkUserPermission, groupController.readFuncWithRoles)
     router.post("/group/assign-role-for-group", checkUserLogin, checkUserPermission, groupController.assignRoleForGroup)
     router.post("/group/create", checkUserLogin, checkUserPermission, groupController.createFunc)
     router.put("/group/update", checkUserLogin, checkUserPermission, groupController.updateFunc)

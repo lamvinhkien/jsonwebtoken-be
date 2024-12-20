@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { getGroupRoles } from "./JWTService";
 import { createAccessToken, createRefreshToken } from "../middleware/JWTAction";
 import fs from "fs-extra";
+import { Op } from "sequelize";
 
 const salt = bcrypt.genSaltSync(10);
 const hashUserPassword = (userPassword) => {
@@ -26,20 +27,13 @@ const checkPhone = async (phone) => {
     return false
 }
 
-const getAllUser = async () => {
-    return await db.User.findAll({
-        attributes: ["id", "email", "phone", "username", "address", "sex"],
-        include: { model: db.Group, attributes: ["name", "description"] },
-    })
-}
-
 const getUserWithPagination = async (page, limit) => {
     try {
         let offset = (page - 1) * limit
         let { count, rows } = await db.User.findAndCountAll({
             order: [["id", "DESC"]],
             attributes: ["id", "email", "phone", "username", "typeAccount", "address", "sex"],
-            include: { model: db.Group, attributes: ["name", "description", "id"] },
+            include: { model: db.Group, where: { name: { [Op.ne]: 'Admin' } }, attributes: ["name", "description", "id"] },
             offset: offset,
             limit: limit
         })
@@ -394,5 +388,5 @@ const changePassword = async (userData) => {
 }
 
 module.exports = {
-    getAllUser, createNewUser, updateUser, deleteUser, getUserWithPagination, changeInfor, changePassword
+    createNewUser, updateUser, deleteUser, getUserWithPagination, changeInfor, changePassword
 }

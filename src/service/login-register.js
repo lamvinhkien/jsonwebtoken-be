@@ -57,7 +57,7 @@ const handleRegisterUser = async (user) => {
             phone: user.phone,
             username: user.username,
             password: hashUserPassword(user.password),
-            groupId: 4,
+            groupId: 2,
             typeAccount: 'LOCAL',
             wrongLogin: 0,
             expiresLock: 0
@@ -187,7 +187,7 @@ const handleLoginGoogle = async (dataRaw) => {
                 idGoogle: dataRaw.idGoogle,
                 username: dataRaw.username,
                 typeAccount: 'GOOGLE',
-                groupId: 4
+                groupId: 2
             })
             user = user.get({ plain: true })
 
@@ -260,7 +260,7 @@ const handleLoginFacebook = async (dataRaw) => {
                 username: dataRaw.username,
                 idFacebook: dataRaw.idFacebook,
                 typeAccount: 'FACEBOOK',
-                groupId: 4
+                groupId: 2
             })
             user = user.get({ plain: true })
 
