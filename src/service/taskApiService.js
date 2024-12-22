@@ -3,14 +3,18 @@ import fs from "fs-extra";
 import 'dotenv/config';
 const { Sequelize } = require('sequelize');
 
-
-const getAllTask = async () => {
+const getAllTask = async (page, limit) => {
     try {
-        let task = await db.Task.findAll()
+        let offset = (page - 1) * limit
+        let { count, rows } = await db.Task.findAndCountAll({
+            offset: offset,
+            limit: limit
+        })
+        let totalPage = Math.ceil(count / limit)
         return {
             EM: "Get task successfully!",
             EC: "1",
-            DT: task
+            DT: { task: rows, offset: offset, totalPage: totalPage }
         }
     } catch (error) {
         console.log(error);

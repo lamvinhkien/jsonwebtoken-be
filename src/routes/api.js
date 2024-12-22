@@ -48,8 +48,8 @@ const initApiRoutes = (app) => {
 
     // Task routes
     router.get("/task/show-all", checkUserLogin, checkUserPermission, taskController.readFunc)
-    router.post("/task/create", checkUserLogin, checkUserPermission, upload.array('files'), taskController.createFunc)
     router.post("/task/get-document", checkUserLogin, taskController.getDocumentFunc)
+    router.post("/task/create", checkUserLogin, checkUserPermission, upload.array('files'), taskController.createFunc)
     router.post("/task/update", checkUserLogin, checkUserPermission, upload.array('files'), taskController.updateFunc)
     router.post("/task/delete", checkUserLogin, checkUserPermission, taskController.deleteFunc)
     router.post("/task/show-all-report-by-manager", checkUserLogin, checkUserPermission, taskController.readReportByManagerFunc)

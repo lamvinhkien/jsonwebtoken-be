@@ -3,7 +3,9 @@ import 'dotenv/config';
 
 const readFunc = async (req, res) => {
     try {
-        let data = await taskApiService.getAllTask();
+        let page = req.query.page
+        let limit = req.query.limit
+        let data = await taskApiService.getAllTask(+page, +limit);
         return res.json({
             EM: data.EM,
             EC: data.EC,
