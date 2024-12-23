@@ -2,6 +2,7 @@ import db from "../models/index";
 import fs from "fs-extra";
 import 'dotenv/config';
 const { Sequelize } = require('sequelize');
+import { Op } from "sequelize";
 
 const getAllTask = async (page, limit) => {
     try {
@@ -9,6 +10,37 @@ const getAllTask = async (page, limit) => {
         let { count, rows } = await db.Task.findAndCountAll({
             offset: offset,
             limit: limit
+        })
+        let totalPage = Math.ceil(count / limit)
+        return {
+            EM: "Get task successfully!",
+            EC: "1",
+            DT: { task: rows, offset: offset, totalPage: totalPage }
+        }
+    } catch (error) {
+        console.log(error);
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: "",
+        };
+    }
+}
+
+const getTaskByCondition = async (page, limit, condition) => {
+    try {
+        const now = new Date()
+        let whereCondition = {}
+        if (condition !== '') {
+            whereCondition = { endDate: { [Op[condition]]: now } }
+        }
+
+        let offset = (page - 1) * limit
+        let { count, rows } = await db.Task.findAndCountAll({
+            where: whereCondition,
+            offset: offset,
+            limit: limit,
+            order: [['id', 'DESC']]
         })
         let totalPage = Math.ceil(count / limit)
         return {
@@ -254,17 +286,26 @@ const createTaskReport = async (reqData, reqFiles) => {
             };
         }
 
-        let reports = reqFiles.map((file) => ({
-            UserID: reqData.UserID,
-            TaskID: reqData.TaskID,
-            FilePath: file.filename
-        }));
+        const now = new Date()
+        let task = await db.Task.findOne({ where: { id: reqData.TaskID, endDate: { [Op.gt]: now } }, attributes: ['id'], raw: true })
+        if (task) {
+            let reports = reqFiles.map((file) => ({
+                UserID: reqData.UserID,
+                TaskID: reqData.TaskID,
+                FilePath: file.filename
+            }));
 
-        await db.Task_User_Document.bulkCreate(reports)
+            await db.Task_User_Document.bulkCreate(reports)
 
+            return {
+                EM: "Upload report successfully!",
+                EC: "1",
+                DT: "",
+            };
+        }
         return {
-            EM: "Upload report successfully!",
-            EC: "1",
+            EM: "The task is overdue.",
+            EC: "0",
             DT: "",
         };
     } catch (error) {
@@ -309,6 +350,6 @@ const deleteTaskReport = async (id) => {
 }
 
 module.exports = {
-    getAllTask, createTask, updateTask, getDocument, deleteTask,
+    getAllTask, createTask, updateTask, getDocument, deleteTask, getTaskByCondition,
     getAllReportByManager, createTaskReport, getAllReportByEmployee, deleteTaskReport
 }

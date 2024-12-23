@@ -21,6 +21,27 @@ const readFunc = async (req, res) => {
     }
 }
 
+const readByConditionFunc = async (req, res) => {
+    try {
+        let page = req.query.page
+        let limit = req.query.limit
+        let condition = req.body.condition
+        let data = await taskApiService.getTaskByCondition(+page, +limit, condition);
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EM: "Error from server",
+            EC: "0",
+            DT: ""
+        })
+    }
+}
+
 const createFunc = async (req, res) => {
     try {
         if (!req.body.title || !req.body.description || !req.body.endDate || !req.body.postBy) {
@@ -219,6 +240,6 @@ const deleteReportFunc = async (req, res) => {
 
 
 module.exports = {
-    readFunc, createFunc, updateFunc, getDocumentFunc, deleteFunc,
+    readFunc, createFunc, updateFunc, getDocumentFunc, deleteFunc, readByConditionFunc,
     readReportByManagerFunc, createReportFunc, deleteReportFunc, readReportByEmployeeFunc
 }
