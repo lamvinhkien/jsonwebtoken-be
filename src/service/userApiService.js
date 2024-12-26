@@ -32,7 +32,7 @@ const getUserWithPagination = async (page, limit) => {
         let offset = (page - 1) * limit
         let { count, rows } = await db.User.findAndCountAll({
             order: [["id", "DESC"]],
-            attributes: ["id", "email", "phone", "username", "typeAccount", "address", "sex"],
+            attributes: ["id", "email", "phone", "username", "dateOfBirth", "typeAccount", "address", "gender"],
             include: { model: db.Group, where: { name: { [Op.ne]: 'Admin' } }, attributes: ["name", "description", "id"] },
             offset: offset,
             limit: limit
@@ -101,9 +101,6 @@ const updateUser = async (user) => {
 
         if (res) {
             let updateUser = await res.update({
-                username: user.username,
-                address: user.address,
-                sex: user.sex,
                 groupId: user.groupId
             })
 
@@ -190,6 +187,8 @@ const changeInfor = async (userData) => {
             let dataEmail = userData.changeData.email ? userData.changeData.email : ''
             let dataPhone = userData.changeData.phone ? userData.changeData.phone : ''
             let dataUsername = userData.changeData.username
+            let dataGender = userData.changeData.gender
+            let dataAddress = userData.changeData.address
 
             let checkEmailExist = await checkEmail(dataEmail)
             let checkPhoneExist = await checkPhone(dataPhone)
@@ -220,6 +219,8 @@ const changeInfor = async (userData) => {
                     email: dataEmail,
                     phone: dataPhone,
                     username: dataUsername,
+                    gender: dataGender,
+                    address: dataAddress
                 })
 
                 // New Token
@@ -230,6 +231,8 @@ const changeInfor = async (userData) => {
                     email: userUpdate.email,
                     username: userUpdate.username,
                     phone: userUpdate.phone,
+                    gender: userUpdate.gender,
+                    address: userUpdate.address,
                     data: scope,
                     typeAccount: typeAccount
                 }
@@ -249,6 +252,8 @@ const changeInfor = async (userData) => {
                 userUpdate = await user.update({
                     phone: dataPhone,
                     username: dataUsername,
+                    gender: dataGender,
+                    address: dataAddress
                 })
 
                 // New Token
@@ -258,6 +263,8 @@ const changeInfor = async (userData) => {
                     id: userId,
                     username: userUpdate.username,
                     phone: userUpdate.phone,
+                    gender: userUpdate.gender,
+                    address: userUpdate.address,
                     data: scope,
                     typeAccount: typeAccount
                 }
@@ -274,9 +281,6 @@ const changeInfor = async (userData) => {
                     }
                 }
             }
-
-
-
         } else {
             return {
                 EM: "User not exist!",

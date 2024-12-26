@@ -7,7 +7,7 @@ import 'dotenv/config';
 
 const handleRegister = async (req, res) => {
     try {
-        if (!req.body.email || !req.body.phone || !req.body.username || !req.body.password) {
+        if (!req.body.email || !req.body.phone || !req.body.username || !req.body.password || !req.body.dateOfBirth) {
             return res.json({
                 EM: "Lack of parameters",
                 EC: "0",

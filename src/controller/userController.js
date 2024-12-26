@@ -97,16 +97,6 @@ const createFunc = async (req, res) => {
 
 const updateFunc = async (req, res) => {
     try {
-        let regName = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ'\s]*$/;
-        let validateName = regName.test(req.body.username)
-        if (!validateName) {
-            return res.json({
-                EM: "Username is invalid!",
-                EC: "0",
-                DT: "username"
-            })
-        }
-
         if (!req.body.groupId) {
             return res.json({
                 EM: "Please enter group.",

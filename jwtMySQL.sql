@@ -246,7 +246,7 @@ CREATE TABLE `user` (
   `password` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   username varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   address varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  sex varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  gender varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   phone varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   groupId int DEFAULT NULL,
   createdAt datetime NOT NULL,
