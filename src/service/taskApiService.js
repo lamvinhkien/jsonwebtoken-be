@@ -88,14 +88,6 @@ const getDocument = async (id) => {
     try {
         let documents = await db.Task_Document.findAll({ where: { TaskID: id }, raw: true })
 
-        if (documents && documents.length > 0) {
-            documents.forEach((item, index) => {
-                if (item.FilePath) {
-                    item.GetFilePath = `http://localhost:${process.env.PORT}/uploads/${item.FilePath}`
-                }
-            })
-        }
-
         return {
             EM: "Get documents successfully!",
             EC: "1",
@@ -226,14 +218,6 @@ const getAllReportByManager = async (id) => {
             include: [{ model: db.User, attributes: [] }]
         })
 
-        if (report && report.length > 0) {
-            report.forEach((item, index) => {
-                if (item.FilePath) {
-                    item.GetFilePath = `http://localhost:${process.env.PORT}/uploads/${item.FilePath}`
-                }
-            })
-        }
-
         return {
             EM: "Get report successfully!",
             EC: "1",
@@ -252,14 +236,6 @@ const getAllReportByManager = async (id) => {
 const getAllReportByEmployee = async (reqData) => {
     try {
         let report = await db.Task_User_Document.findAll({ where: { TaskID: reqData.TaskID, UserID: reqData.UserID }, raw: true })
-
-        if (report && report.length > 0) {
-            report.forEach((item, index) => {
-                if (item.FilePath) {
-                    item.GetFilePath = `http://localhost:${process.env.PORT}/uploads/${item.FilePath}`
-                }
-            })
-        }
 
         return {
             EM: "Get report successfully!",

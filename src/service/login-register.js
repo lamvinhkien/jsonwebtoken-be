@@ -58,6 +58,7 @@ const handleRegisterUser = async (user) => {
             username: user.username,
             gender: user.gender,
             address: '',
+            avatar: '',
             dateOfBirth: user.dateOfBirth,
             password: hashUserPassword(user.password),
             groupId: 2,
@@ -139,6 +140,7 @@ const handleLoginUser = async (valueLogin, password) => {
                     username: userData.username,
                     gender: userData.gender,
                     address: userData.address,
+                    avatar: userData.avatar,
                     dateOfBirth: userData.dateOfBirth,
                     phone: userData.phone,
                     typeAccount: userData.typeAccount,
@@ -165,6 +167,7 @@ const handleLoginUser = async (valueLogin, password) => {
                         username: userData.username,
                         gender: userData.gender,
                         address: userData.address,
+                        avatar: userData.avatar,
                         dateOfBirth: userData.dateOfBirth,
                         typeAccount: userData.typeAccount,
                     }
@@ -184,9 +187,7 @@ const handleLoginUser = async (valueLogin, password) => {
 
 const handleLoginGoogle = async (dataRaw) => {
     try {
-        let user = null
-
-        user = await db.User.findOne({
+        let user = await db.User.findOne({
             where: { idGoogle: dataRaw.idGoogle, typeAccount: 'GOOGLE' },
             raw: true
         })
@@ -195,6 +196,12 @@ const handleLoginGoogle = async (dataRaw) => {
             user = await db.User.create({
                 idGoogle: dataRaw.idGoogle,
                 username: dataRaw.username,
+                email: '',
+                phone: '',
+                gender: 'Others',
+                avatar: '',
+                address: '',
+                dateOfBirth: null,
                 typeAccount: 'GOOGLE',
                 groupId: 2
             })
@@ -205,9 +212,12 @@ const handleLoginGoogle = async (dataRaw) => {
                 id: user.id,
                 idGoogle: user.idGoogle,
                 username: user.username,
+                email: user.email ? user.email : '',
                 gender: user.gender ? user.gender : '',
                 address: user.address ? user.address : '',
                 phone: user.phone ? user.phone : '',
+                avatar: user.avatar ? user.avatar : '',
+                dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
                 typeAccount: user.typeAccount,
                 data: scope,
             }
@@ -219,9 +229,12 @@ const handleLoginGoogle = async (dataRaw) => {
                 refresh_token: refreshToken,
                 data: scope,
                 idGoogle: payload.idGoogle,
+                email: payload.email,
                 phone: payload.phone,
+                avatar: payload.avatar,
                 gender: payload.gender,
                 address: payload.address,
+                dateOfBirth: payload.dateOfBirth,
                 typeAccount: payload.typeAccount,
                 username: payload.username,
             }
@@ -231,9 +244,12 @@ const handleLoginGoogle = async (dataRaw) => {
                 id: user.id,
                 idGoogle: user.idGoogle,
                 username: user.username,
+                email: user.email ? user.email : '',
                 gender: user.gender ? user.gender : '',
                 address: user.address ? user.address : '',
                 phone: user.phone ? user.phone : '',
+                avatar: user.avatar ? user.avatar : '',
+                dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
                 typeAccount: user.typeAccount,
                 data: scope,
             }
@@ -245,9 +261,12 @@ const handleLoginGoogle = async (dataRaw) => {
                 refresh_token: refreshToken,
                 data: scope,
                 idGoogle: payload.idGoogle,
+                email: payload.email,
                 phone: payload.phone,
+                avatar: payload.avatar,
                 gender: payload.gender,
                 address: payload.address,
+                dateOfBirth: payload.dateOfBirth,
                 typeAccount: payload.typeAccount,
                 username: payload.username,
             }
@@ -274,6 +293,11 @@ const handleLoginFacebook = async (dataRaw) => {
         if (!user) {
             user = await db.User.create({
                 email: '',
+                phone: '',
+                gender: 'Others',
+                avatar: '',
+                address: '',
+                dateOfBirth: null,
                 username: dataRaw.username,
                 idFacebook: dataRaw.idFacebook,
                 typeAccount: 'FACEBOOK',
@@ -285,11 +309,13 @@ const handleLoginFacebook = async (dataRaw) => {
             let payload = {
                 id: user.id,
                 idFacebook: user.idFacebook,
-                email: '',
+                email: user.email ? user.email : '',
                 username: user.username,
                 gender: user.gender ? user.gender : '',
                 address: user.address ? user.address : '',
+                dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
                 phone: user.phone ? user.phone : '',
+                avatar: user.avatar ? user.avatar : '',
                 typeAccount: user.typeAccount,
                 data: scope,
             }
@@ -301,8 +327,10 @@ const handleLoginFacebook = async (dataRaw) => {
                 refresh_token: refreshToken,
                 data: scope,
                 idFacebook: payload.idFacebook,
-                email: '',
+                email: payload.email,
                 phone: payload.phone,
+                avatar: payload.avatar,
+                dateOfBirth: payload.dateOfBirth,
                 gender: payload.gender,
                 address: payload.address,
                 typeAccount: payload.typeAccount,
@@ -313,10 +341,12 @@ const handleLoginFacebook = async (dataRaw) => {
             let payload = {
                 id: user.id,
                 idFacebook: user.idFacebook,
-                email: '',
+                email: user.email ? user.email : '',
                 username: user.username,
+                avatar: user.avatar ? user.avatar : '',
                 gender: user.gender ? user.gender : '',
                 address: user.address ? user.address : '',
+                dateOfBirth: user.dateOfBirth ? user.dateOfBirth : null,
                 phone: user.phone ? user.phone : '',
                 typeAccount: user.typeAccount,
                 data: scope,
@@ -329,9 +359,11 @@ const handleLoginFacebook = async (dataRaw) => {
                 refresh_token: refreshToken,
                 idFacebook: payload.idFacebook,
                 data: scope,
-                email: '',
+                email: payload.email,
                 phone: payload.phone,
                 gender: payload.gender,
+                avatar: payload.avatar,
+                dateOfBirth: payload.dateOfBirth,
                 address: payload.address,
                 typeAccount: payload.typeAccount,
                 username: payload.username,

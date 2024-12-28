@@ -1,23 +1,16 @@
 import express from "express";
 import passport from "passport";
 import apiController from "../controller/apiController";
-import userController from "../controller/userController";
-import roleController from "../controller/roleController";
-import groupController from "../controller/groupController";
-import taskController from "../controller/taskController";
-import { checkUserLogin, checkUserPermission } from "../middleware/JWTAction";
-import upload from "../middleware/UploadAction";
+import { checkUserLogin } from "../middleware/JWTAction";
 import 'dotenv/config';
 
 const router = express.Router();
 
 const initApiRoutes = (app) => {
-
     // Login, Logout, Register
     router.post("/register", apiController.handleRegister)
     router.post("/login", apiController.handleLogin)
     router.post("/logout", checkUserLogin, apiController.handleLogout)
-
 
     // Google
     router.get("/login/google", passport.authenticate('google'))
@@ -29,7 +22,6 @@ const initApiRoutes = (app) => {
         res.redirect(process.env.REACT_URL)
     });
 
-
     // Facebook
     router.get("/login/facebook", passport.authenticate('facebook'))
     router.get('/oauth2/redirect/facebook', passport.authenticate('facebook', {
@@ -40,51 +32,9 @@ const initApiRoutes = (app) => {
         res.redirect(process.env.REACT_URL)
     });
 
-
     // Forgot password
     router.post('/send-otp', apiController.handleForgotPassword)
     router.post('/reset-password', apiController.handleResetPassword)
-
-
-    // Task routes
-    router.get("/task/show-all", checkUserLogin, checkUserPermission, taskController.readFunc)
-    router.post("/task/show-by-condition", checkUserLogin, taskController.readByConditionFunc)
-    router.post("/task/get-document", checkUserLogin, taskController.getDocumentFunc)
-    router.post("/task/create", checkUserLogin, checkUserPermission, upload.array('files'), taskController.createFunc)
-    router.post("/task/update", checkUserLogin, checkUserPermission, upload.array('files'), taskController.updateFunc)
-    router.post("/task/delete", checkUserLogin, checkUserPermission, taskController.deleteFunc)
-    router.post("/task/show-all-report-by-manager", checkUserLogin, checkUserPermission, taskController.readReportByManagerFunc)
-    router.post("/task/show-all-report-by-employee", checkUserLogin, taskController.readReportByEmployeeFunc)
-    router.post("/task/create-report", checkUserLogin, checkUserPermission, upload.array('report'), taskController.createReportFunc)
-    router.post("/task/delete-report", checkUserLogin, checkUserPermission, taskController.deleteReportFunc)
-
-
-    // User routes
-    router.get("/user/show-all", checkUserLogin, checkUserPermission, userController.readFunc)
-    router.post("/user/create", checkUserLogin, checkUserPermission, userController.createFunc)
-    router.put("/user/update", checkUserLogin, checkUserPermission, userController.updateFunc)
-    router.delete("/user/delete", checkUserLogin, checkUserPermission, userController.deleteFunc)
-    router.get("/user/get-account", checkUserLogin, userController.getUserAccount)
-    router.post("/user/change-infor", checkUserLogin, userController.changeInfor)
-    router.post("/user/change-password", checkUserLogin, userController.changePassword)
-
-
-    // Role routes
-    router.get("/role/show-all-for-assign", checkUserLogin, checkUserPermission, roleController.readFuncWithoutPage)
-    router.get("/role/show-all", checkUserLogin, checkUserPermission, roleController.readFunc)
-    router.put("/role/update", checkUserLogin, checkUserPermission, roleController.updateFunc)
-
-
-    // Group routes
-    router.get("/group/show-all", checkUserLogin, groupController.readFunc)
-    router.get("/group/show-all-for-assign", checkUserLogin, checkUserPermission, groupController.readByAdminFunc)
-    router.get("/group/show-all-with-pagination", checkUserLogin, checkUserPermission, groupController.readFuncWithPage)
-    router.post("/group/get-group-with-roles", checkUserLogin, checkUserPermission, groupController.readFuncWithRoles)
-    router.post("/group/assign-role-for-group", checkUserLogin, checkUserPermission, groupController.assignRoleForGroup)
-    router.post("/group/create", checkUserLogin, checkUserPermission, groupController.createFunc)
-    router.put("/group/update", checkUserLogin, checkUserPermission, groupController.updateFunc)
-    router.delete("/group/delete", checkUserLogin, checkUserPermission, groupController.deleteFunc)
-
 
     return app.use("/api", router)
 }

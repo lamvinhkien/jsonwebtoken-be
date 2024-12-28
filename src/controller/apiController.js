@@ -3,11 +3,11 @@ import nodemailer from 'nodemailer'
 import * as handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
-import 'dotenv/config'; 
+import 'dotenv/config';
 
 const handleRegister = async (req, res) => {
     try {
-        if (!req.body.email || !req.body.phone || !req.body.username || !req.body.password || !req.body.dateOfBirth) {
+        if (!req.body.email || !req.body.phone || !req.body.username || !req.body.password || !req.body.dateOfBirth || !req.body.gender) {
             return res.json({
                 EM: "Lack of parameters",
                 EC: "0",

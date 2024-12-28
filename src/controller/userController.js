@@ -1,5 +1,5 @@
 import userApiService from "../service/userApiService";
-import 'dotenv/config'; 
+import 'dotenv/config';
 
 const readFunc = async (req, res) => {
     try {
@@ -32,7 +32,7 @@ const readFunc = async (req, res) => {
 
 const createFunc = async (req, res) => {
     try {
-        if (!req.body.email || !req.body.phone || !req.body.username || !req.body.password) {
+        if (!req.body.email || !req.body.phone || !req.body.username || !req.body.password || !req.body.dateOfBirth || !req.body.gender) {
             return res.json({
                 EM: "Lack of parameters",
                 EC: "0",
@@ -176,14 +176,24 @@ const changeInfor = async (req, res) => {
             })
         }
 
-        let regPhone = /(0[3|5|7|8|9])+([0-9]{8})\b/g;
-        let validatePhone = regPhone.test(req.body.changeData.phone)
-        if (!validatePhone) {
+        if (!req.body.changeData.dateOfBirth) {
             return res.json({
-                EM: "Phone is invalid!",
+                EM: "Date of birth is required!",
                 EC: "0",
-                DT: "phone"
+                DT: "dateOfBirth"
             })
+        }
+
+        if (req.body.changeData.phone) {
+            let regPhone = /(0[3|5|7|8|9])+([0-9]{8})\b/g;
+            let validatePhone = regPhone.test(req.body.changeData.phone)
+            if (!validatePhone) {
+                return res.json({
+                    EM: "Phone is invalid!",
+                    EC: "0",
+                    DT: "phone"
+                })
+            }
         }
 
         let regName = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễếệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ'\s]*$/;
@@ -198,6 +208,29 @@ const changeInfor = async (req, res) => {
 
         let data = await userApiService.changeInfor(req.body)
 
+        if (data.EC === '1') {
+            res.cookie("at_user", data.DT.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+            res.cookie("rt_user", data.DT.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+        }
+
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EC: "0",
+            EM: "Error from server",
+            DT: ""
+        })
+    }
+}
+
+const changeAvatar = async (req, res) => {
+    try {
+        let data = await userApiService.changeAvatar(req.body, req.files[0])
         if (data.EC === '1') {
             res.cookie("at_user", data.DT.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
             res.cookie("rt_user", data.DT.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
@@ -243,5 +276,5 @@ const changePassword = async (req, res) => {
 }
 
 module.exports = {
-    readFunc, createFunc, updateFunc, deleteFunc, getUserAccount, changeInfor, changePassword
+    readFunc, createFunc, updateFunc, deleteFunc, getUserAccount, changeInfor, changePassword, changeAvatar
 }

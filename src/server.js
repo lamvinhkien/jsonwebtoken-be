@@ -1,5 +1,9 @@
 import express from "express";
 import initApiRoutes from "./routes/api";
+import initUserRoutes from "./routes/user";
+import initGroupRoutes from "./routes/group";
+import initRoleRoutes from "./routes/role";
+import initTaskRoutes from "./routes/task";
 import bodyParser from "body-parser";
 import cookieParser from 'cookie-parser';
 import configCors from "./config/cors";
@@ -35,6 +39,10 @@ configFacebookLogin()
 
 // init routes
 initApiRoutes(app);
+initUserRoutes(app);
+initGroupRoutes(app);
+initRoleRoutes(app);
+initTaskRoutes(app);
 
 // running port
 app.listen(PORT, () => {

@@ -4,6 +4,7 @@ import { getGroupRoles } from "./JWTService";
 import { createAccessToken, createRefreshToken } from "../middleware/JWTAction";
 import fs from "fs-extra";
 import { Op } from "sequelize";
+import 'dotenv/config';
 
 const salt = bcrypt.genSaltSync(10);
 const hashUserPassword = (userPassword) => {
@@ -32,7 +33,7 @@ const getUserWithPagination = async (page, limit) => {
         let offset = (page - 1) * limit
         let { count, rows } = await db.User.findAndCountAll({
             order: [["id", "DESC"]],
-            attributes: ["id", "email", "phone", "username", "dateOfBirth", "typeAccount", "address", "gender"],
+            attributes: ["id", "email", "phone", "avatar", "username", "dateOfBirth", "typeAccount", "address", "gender"],
             include: { model: db.Group, where: { name: { [Op.ne]: 'Admin' } }, attributes: ["name", "description", "id"] },
             offset: offset,
             limit: limit
@@ -77,7 +78,7 @@ const createNewUser = async (user) => {
 
         let password = hashUserPassword(user.password)
 
-        let data = await db.User.create({ ...user, password: password, typeAccount: 'LOCAL' })
+        let data = await db.User.create({ ...user, password: password, typeAccount: 'LOCAL', avatar: '' })
         return {
             EM: "Create new user successfully!",
             EC: "1",
@@ -142,6 +143,10 @@ const deleteUser = async (id) => {
                 })
             }
 
+            if (user.avatar !== '') {
+                await fs.unlink('src/public/uploads/' + user.avatar)
+            }
+
             await db.User.destroy({
                 where: { id: user.id }
             })
@@ -189,6 +194,7 @@ const changeInfor = async (userData) => {
             let dataUsername = userData.changeData.username
             let dataGender = userData.changeData.gender
             let dataAddress = userData.changeData.address
+            let dataDateOfBirth = userData.changeData.dateOfBirth
 
             let checkEmailExist = await checkEmail(dataEmail)
             let checkPhoneExist = await checkPhone(dataPhone)
@@ -210,7 +216,6 @@ const changeInfor = async (userData) => {
                 }
             }
 
-
             // Update user
             let userUpdate = null;
 
@@ -219,6 +224,7 @@ const changeInfor = async (userData) => {
                     email: dataEmail,
                     phone: dataPhone,
                     username: dataUsername,
+                    dateOfBirth: dataDateOfBirth,
                     gender: dataGender,
                     address: dataAddress
                 })
@@ -231,10 +237,12 @@ const changeInfor = async (userData) => {
                     email: userUpdate.email,
                     username: userUpdate.username,
                     phone: userUpdate.phone,
+                    avatar: user.avatar ? user.avatar : '',
                     gender: userUpdate.gender,
                     address: userUpdate.address,
-                    data: scope,
-                    typeAccount: typeAccount
+                    dateOfBirth: userUpdate.dateOfBirth,
+                    typeAccount: typeAccount,
+                    data: scope
                 }
 
                 let access_token = await createAccessToken(payload)
@@ -253,7 +261,8 @@ const changeInfor = async (userData) => {
                     phone: dataPhone,
                     username: dataUsername,
                     gender: dataGender,
-                    address: dataAddress
+                    address: dataAddress,
+                    dateOfBirth: dataDateOfBirth
                 })
 
                 // New Token
@@ -263,8 +272,10 @@ const changeInfor = async (userData) => {
                     id: userId,
                     username: userUpdate.username,
                     phone: userUpdate.phone,
+                    avatar: user.avatar ? user.avatar : '',
                     gender: userUpdate.gender,
                     address: userUpdate.address,
+                    dateOfBirth: userUpdate.dateOfBirth,
                     data: scope,
                     typeAccount: typeAccount
                 }
@@ -279,6 +290,67 @@ const changeInfor = async (userData) => {
                         access_token: access_token,
                         refresh_token: refresh_token
                     }
+                }
+            }
+        } else {
+            return {
+                EM: "User not exist!",
+                EC: "0",
+                DT: {}
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: {}
+        }
+    }
+}
+
+const changeAvatar = async (userData, avatar) => {
+    try {
+        let user = await db.User.findOne({
+            where: {
+                id: userData.id
+            }
+        })
+
+        if (user) {
+            if (user.avatar !== '') {
+                await fs.unlink(`src/public/uploads/${user.avatar}`)
+            }
+
+            await user.update({
+                avatar: avatar.filename
+            })
+
+            // New Token
+            let scope = await getGroupRoles(userData)
+
+            let payload = {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                phone: user.phone,
+                avatar: user.avatar ? user.avatar : '',
+                gender: user.gender,
+                address: user.address,
+                dateOfBirth: user.dateOfBirth,
+                typeAccount: user.typeAccount,
+                data: scope,
+            }
+
+            let access_token = await createAccessToken(payload)
+            let refresh_token = await createRefreshToken(payload)
+
+            return {
+                EM: "Upload avatar successfully!",
+                EC: "1",
+                DT: {
+                    access_token: access_token,
+                    refresh_token: refresh_token
                 }
             }
         } else {
@@ -392,5 +464,5 @@ const changePassword = async (userData) => {
 }
 
 module.exports = {
-    createNewUser, updateUser, deleteUser, getUserWithPagination, changeInfor, changePassword
+    createNewUser, updateUser, deleteUser, getUserWithPagination, changeInfor, changePassword, changeAvatar
 }
