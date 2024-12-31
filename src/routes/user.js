@@ -29,6 +29,7 @@ const initUserRoutes = (app) => {
         },
         userController.changeAvatar
     );
+    router.post("/user/remove-avatar", checkUserLogin, userController.removeAvatar)
     router.post("/user/change-password", checkUserLogin, userController.changePassword)
 
     return app.use("/api", router)

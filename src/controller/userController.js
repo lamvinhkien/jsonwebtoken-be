@@ -251,6 +251,29 @@ const changeAvatar = async (req, res) => {
     }
 }
 
+const removeAvatar = async (req, res) => {
+    try {
+        let data = await userApiService.removeAvatar(req.body)
+        if (data.EC === '1') {
+            res.cookie("at_user", data.DT.access_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+            res.cookie("rt_user", data.DT.refresh_token, { httpOnly: true, maxAge: process.env.EXPIRES_IN_COOKIES })
+        }
+
+        return res.json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT
+        })
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            EC: "0",
+            EM: "Error from server",
+            DT: ""
+        })
+    }
+}
+
 const changePassword = async (req, res) => {
     try {
         let data = await userApiService.changePassword(req.body)
@@ -276,5 +299,5 @@ const changePassword = async (req, res) => {
 }
 
 module.exports = {
-    readFunc, createFunc, updateFunc, deleteFunc, getUserAccount, changeInfor, changePassword, changeAvatar
+    readFunc, createFunc, updateFunc, deleteFunc, getUserAccount, changeInfor, changePassword, changeAvatar, removeAvatar
 }

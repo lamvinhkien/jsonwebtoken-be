@@ -370,6 +370,67 @@ const changeAvatar = async (userData, avatar) => {
     }
 }
 
+const removeAvatar = async (userData) => {
+    try {
+        let user = await db.User.findOne({
+            where: {
+                id: userData.id
+            }
+        })
+
+        if (user) {
+            if (user.avatar !== '') {
+                await fs.unlink(`src/public/uploads/${user.avatar}`)
+            }
+
+            await user.update({
+                avatar: ''
+            })
+
+            // New Token
+            let scope = await getGroupRoles(userData)
+
+            let payload = {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                phone: user.phone,
+                avatar: user.avatar ? user.avatar : '',
+                gender: user.gender,
+                address: user.address,
+                dateOfBirth: user.dateOfBirth,
+                typeAccount: user.typeAccount,
+                data: scope,
+            }
+
+            let access_token = await createAccessToken(payload)
+            let refresh_token = await createRefreshToken(payload)
+
+            return {
+                EM: "Remove avatar successfully!",
+                EC: "1",
+                DT: {
+                    access_token: access_token,
+                    refresh_token: refresh_token
+                }
+            }
+        } else {
+            return {
+                EM: "User not exist!",
+                EC: "0",
+                DT: {}
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            EM: "Error from server",
+            EC: "0",
+            DT: {}
+        }
+    }
+}
+
 const checkPassword = async (inputPassword, hashPassword) => {
     let res = await bcrypt.compare(inputPassword, hashPassword);
     return res;
@@ -464,5 +525,5 @@ const changePassword = async (userData) => {
 }
 
 module.exports = {
-    createNewUser, updateUser, deleteUser, getUserWithPagination, changeInfor, changePassword, changeAvatar
+    createNewUser, updateUser, deleteUser, getUserWithPagination, changeInfor, changePassword, changeAvatar, removeAvatar
 }
