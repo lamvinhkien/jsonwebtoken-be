@@ -381,37 +381,42 @@ const removeAvatar = async (userData) => {
         if (user) {
             if (user.avatar !== '') {
                 await fs.unlink(`src/public/uploads/${user.avatar}`)
-            }
+                await user.update({
+                    avatar: ''
+                })
 
-            await user.update({
-                avatar: ''
-            })
+                // New Token
+                let scope = await getGroupRoles(userData)
 
-            // New Token
-            let scope = await getGroupRoles(userData)
+                let payload = {
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    phone: user.phone,
+                    avatar: user.avatar ? user.avatar : '',
+                    gender: user.gender,
+                    address: user.address,
+                    dateOfBirth: user.dateOfBirth,
+                    typeAccount: user.typeAccount,
+                    data: scope,
+                }
 
-            let payload = {
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                phone: user.phone,
-                avatar: user.avatar ? user.avatar : '',
-                gender: user.gender,
-                address: user.address,
-                dateOfBirth: user.dateOfBirth,
-                typeAccount: user.typeAccount,
-                data: scope,
-            }
+                let access_token = await createAccessToken(payload)
+                let refresh_token = await createRefreshToken(payload)
 
-            let access_token = await createAccessToken(payload)
-            let refresh_token = await createRefreshToken(payload)
-
-            return {
-                EM: "Remove avatar successfully!",
-                EC: "1",
-                DT: {
-                    access_token: access_token,
-                    refresh_token: refresh_token
+                return {
+                    EM: "Remove avatar successfully!",
+                    EC: "1",
+                    DT: {
+                        access_token: access_token,
+                        refresh_token: refresh_token
+                    }
+                }
+            } else {
+                return {
+                    EM: "You don't have avatar.",
+                    EC: "0",
+                    DT: ''
                 }
             }
         } else {
