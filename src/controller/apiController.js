@@ -184,8 +184,8 @@ const handleForgotPassword = async (req, res) => {
         transporter.sendMail({
             from: `Lam Vinh Kien <${process.env.GOOGLE_APP_EMAIL}>`,
             to: emailReq,
-            subject: "RESET YOUR PASSWORD HR-Portals",
-            text: "RESET YOUR PASSWORD HR-Portals",
+            subject: "RESET YOUR PASSWORD W-HRM System",
+            text: "RESET YOUR PASSWORD W-HRM System",
             html: htmlToSend
         });
 
